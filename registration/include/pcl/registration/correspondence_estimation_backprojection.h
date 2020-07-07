@@ -98,7 +98,7 @@ namespace pcl
         }
       
         /** \brief Empty destructor */
-        virtual ~CorrespondenceEstimationBackProjection () {}
+        virtual ~CorrespondenceEstimationBackProjection () = default;
 
         /** \brief Set the normals computed on the source point cloud
           * \param[in] normals the normals computed for the source cloud

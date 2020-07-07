@@ -68,7 +68,7 @@ namespace pcl
         WarpPointRigid6D () : WarpPointRigid<PointSourceT, PointTargetT, Scalar> (6) {}
       
         /** \brief Empty destructor */
-        ~WarpPointRigid6D () {}
+        ~WarpPointRigid6D () override = default;
 
         /** \brief Set warp parameters. 
           * \note Assumes the quaternion parameters are normalized. 

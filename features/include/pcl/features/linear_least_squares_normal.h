@@ -72,7 +72,7 @@ namespace pcl
       };
 
       /** \brief Destructor */
-      ~LinearLeastSquaresNormalEstimation ();
+      ~LinearLeastSquaresNormalEstimation () override;
 
       /** \brief Computes the normal at the specified position. 
         * \param[in] pos_x x position (pixel)

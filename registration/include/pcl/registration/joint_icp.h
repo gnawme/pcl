@@ -122,7 +122,7 @@ namespace pcl
       };
 
       /** \brief Empty destructor */
-      ~JointIterativeClosestPoint () {}
+      ~JointIterativeClosestPoint () = default;
 
 
       /** \brief Provide a pointer to the input source 

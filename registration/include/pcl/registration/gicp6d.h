@@ -181,8 +181,7 @@ namespace pcl
 
           
           ~MyPointRepresentation ()
-          {
-          }
+          override = default;
 
           inline Ptr
           makeShared () const

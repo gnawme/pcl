@@ -75,7 +75,7 @@ namespace pcl
         }
 
         /** \brief Empty destructor. */
-        ~CorrespondenceRejectorFeatures () {}
+        ~CorrespondenceRejectorFeatures () override = default;
 
         /** \brief Get a list of valid correspondences after rejection from the original set of correspondences
           * \param[in] original_correspondences the set of initial correspondences given
@@ -189,7 +189,7 @@ namespace pcl
             }
       
             /** \brief Empty destructor */
-            ~FeatureContainer () {}
+            ~FeatureContainer () override = default;
 
             inline void 
             setSourceFeature (const FeatureCloudConstPtr &source_features)

@@ -131,8 +131,7 @@ namespace pcl
       
       /** \brief Destructor */
       ~SampleConsensusPrerejective ()
-      {
-      }
+      = default;
 
       /** \brief Provide a boost shared pointer to the source point cloud's feature descriptors
         * \param features the source point cloud's features

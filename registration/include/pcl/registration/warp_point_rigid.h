@@ -75,7 +75,7 @@ namespace pcl
         };
 
         /** \brief Destructor. */
-        virtual ~WarpPointRigid () {};
+        virtual ~WarpPointRigid () = default;;
 
         /** \brief Set warp parameters. Pure virtual.
           * \param[in] p warp parameters 

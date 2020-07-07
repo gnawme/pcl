@@ -69,7 +69,7 @@ namespace pcl
           use_umeyama_ (use_umeyama)
         {}
 
-        ~TransformationEstimationSVD () {};
+        ~TransformationEstimationSVD () override = default;;
 
         /** \brief Estimate a rigid rotation transformation between a source and a target point cloud using SVD.
           * \param[in] cloud_src the source point cloud dataset

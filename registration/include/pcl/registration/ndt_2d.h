@@ -82,7 +82,7 @@ namespace pcl
       }
       
       /** \brief Empty destructor */
-      ~NormalDistributionsTransform2D () {}
+      ~NormalDistributionsTransform2D () override = default;
  
       /** \brief centre of the ndt grid (target coordinate system)
         * \param centre value to set
