@@ -9,9 +9,8 @@ endif()
 
 # Set target C++ standard and required compiler features
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_STANDARD 17 CACHE STRING "The target C++ standard. PCL requires C++17 or higher.")
+set(CMAKE_CXX_STANDARD 14 CACHE STRING "The target C++ standard. PCL requires C++14 or higher.")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 set(CMAKE_CXX_EXTENSIONS OFF)
 if(CMAKE_VERSION VERSION_LESS 3.8)
   # CMake did not have cxx_std_14 compile feature prior to 3.8
