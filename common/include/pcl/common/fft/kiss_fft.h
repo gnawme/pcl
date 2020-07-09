@@ -1,9 +1,9 @@
 #pragma once
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
+#include <stdlib.h> // NOLINT
+#include <stdio.h>  // NOLINT
+#include <math.h>   // NOLINT
+#include <string.h> // NOLINT
 
 #include <pcl/pcl_exports.h>
 
@@ -49,12 +49,12 @@ extern "C" {
 # endif
 #endif
 
-typedef struct {
-    kiss_fft_scalar r;
-    kiss_fft_scalar i;
-}kiss_fft_cpx;
+typedef struct {            // NOLINT
+    kiss_fft_scalar r;      // NOLINT
+    kiss_fft_scalar i;      // NOLINT
+}kiss_fft_cpx;              // NOLINT
 
-typedef struct kiss_fft_state* kiss_fft_cfg;
+typedef struct kiss_fft_state* kiss_fft_cfg;    // NOLINT
 
 /* 
  *  kiss_fft_alloc
