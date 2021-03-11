@@ -1,0 +1,29 @@
+jobs:
+  - job: tidying
+    displayName: Modernize C++
+    pool:
+      vmImage: 'ubuntu-latest'
+    container: tdy
+    steps:
+      - checkout: self
+        # find the commit hash on a quick non-forced update too
+        fetchDepth: 10
+      - script: run-clang-tidy -header-filter='.*' -checks='-*,modernize-deprecated-headers,modernize-redundant-void-arg,modernize-replace-random-shuffle,modernize-use-equals-default,modernize-use-equals-delete,modernize-use-nullptr,modernize-use-override,modernize-use-using' -fix
+        displayName: 'Run clang-tidy'
+      - script: git diff > formatting.patch
+        displayName: 'Compute diff'
+      - script: cat formatting.patch
+        displayName: 'Show diff'
+      - task: CopyFiles@2
+        inputs:
+          sourceFolder: '$(Build.SourcesDirectory)'
+          contents: 'formatting.patch'
+          targetFolder: '$(Build.ArtifactStagingDirectory)'
+        displayName: 'Copy diff to staging directory'
+      - task: PublishBuildArtifacts@1
+        inputs:
+          pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          artifactName: formatting
+        displayName: 'Publish diff'
+      - script: "[ ! -s formatting.patch ]"
+        displayName: 'Set job exit status'
