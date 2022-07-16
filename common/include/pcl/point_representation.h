@@ -107,7 +107,7 @@ namespace pcl
 
         if (trivial_)
         {
-          const float* temp = reinterpret_cast<const float*>(&p);
+          const auto* temp = reinterpret_cast<const float*>(&p);
 
           for (int i = 0; i < nr_dimensions_; ++i)
           {
@@ -120,7 +120,7 @@ namespace pcl
         }
         else
         {
-          float *temp = new float[nr_dimensions_];
+          float* temp = new float[nr_dimensions_];
           copyToFloatArray (p, temp);
 
           for (int i = 0; i < nr_dimensions_; ++i)
@@ -260,7 +260,7 @@ namespace pcl
       {
         static void copyPoint (const Pod &p1, float * p2, int &f_idx)
         {
-          const std::uint8_t * data_ptr = reinterpret_cast<const std::uint8_t *> (&p1) +
+          const auto* data_ptr = reinterpret_cast<const std::uint8_t *> (&p1) +
             pcl::traits::offset<PointDefault, Key>::value;
           p2[f_idx++] = *reinterpret_cast<const FieldT*> (data_ptr);
         }
@@ -271,10 +271,10 @@ namespace pcl
       {
         static void copyPoint (const Pod &p1, float * p2, int &f_idx)
         {
-          const std::uint8_t * data_ptr = reinterpret_cast<const std::uint8_t *> (&p1) +
+          const auto* data_ptr = reinterpret_cast<const std::uint8_t *> (&p1) +
             pcl::traits::offset<PointDefault, Key>::value;
           int nr_dims = NrDims;
-          const FieldT * array = reinterpret_cast<const FieldT *> (data_ptr);
+          const auto* array = reinterpret_cast<const FieldT *> (data_ptr);
           for (int i = 0; i < nr_dims; ++i)
           {
             p2[f_idx++] = array[i];
@@ -549,8 +549,9 @@ namespace pcl
         // If point type is unknown, assume it's a struct/array of floats, and compute the number of dimensions
         nr_dimensions_ = static_cast<int> (sizeof (PointDefault) / sizeof (float)) - start_dim_;
         // Limit the default representation to the first 3 elements
-        if (nr_dimensions_ > max_dim_)
+        if (nr_dimensions_ > max_dim_) {
           nr_dimensions_ = max_dim_;
+        }
       }
 
       inline Ptr
@@ -567,7 +568,7 @@ namespace pcl
       copyToFloatArray (const PointDefault &p, float *out) const override
       {
         // If point type is unknown, treat it as a struct/array of floats
-        const float *ptr = (reinterpret_cast<const float*> (&p)) + start_dim_;
+        const auto* ptr = (reinterpret_cast<const float*> (&p)) + start_dim_;
         std::copy(ptr, ptr + nr_dimensions_, out);
       }
 

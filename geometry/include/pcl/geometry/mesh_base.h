@@ -1159,7 +1159,7 @@ protected:
                   const EdgeData& edge_data,
                   const HalfEdgeData& half_edge_data)
   {
-    const int n = static_cast<int>(vertices.size());
+    auto n = static_cast<int>(vertices.size());
     if (n < 3)
       return (FaceIndex());
 
@@ -1603,7 +1603,7 @@ protected:
     } while (++circ != circ_end);
     assert(inner_he_.size() >= 3); // Minimum should be a triangle.
 
-    const int n = static_cast<int>(inner_he_.size());
+    auto n = static_cast<int>(inner_he_.size());
     int j;
 
     if (IsManifold::value) {

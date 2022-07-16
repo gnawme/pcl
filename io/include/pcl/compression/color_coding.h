@@ -80,7 +80,7 @@ public:
   void
   setBitDepth (unsigned char bitDepth_arg)
   {
-    colorBitReduction_ = static_cast<unsigned char> (8 - bitDepth_arg);
+    colorBitReduction_ = 8u - bitDepth_arg;
   }
 
   /** \brief Retrieve color bit depth of encoded color information.
@@ -163,7 +163,7 @@ public:
     for (const auto& idx: indexVector_arg)
     {
       // get color information from points
-      const char* idxPointPtr = reinterpret_cast<const char*> (&(*inputCloud_arg)[idx]);
+      auto idxPointPtr = reinterpret_cast<const char*> (&(*inputCloud_arg)[idx]);
       const int& colorInt = *reinterpret_cast<const int*> (idxPointPtr+rgba_offset_arg);
 
       // add color information
@@ -173,7 +173,7 @@ public:
 
     }
 
-    const uindex_t len = static_cast<uindex_t> (indexVector_arg.size());
+    auto len = static_cast<uindex_t> (indexVector_arg.size());
     // calculated average color information
     if (len > 1)
     {
@@ -212,7 +212,7 @@ public:
     for (const auto& idx: indexVector_arg)
     {
       // get color information from point
-      const char* idxPointPtr = reinterpret_cast<const char*> (&(*inputCloud_arg)[idx]);
+      auto idxPointPtr = reinterpret_cast<const char*> (&(*inputCloud_arg)[idx]);
       const int& colorInt = *reinterpret_cast<const int*> (idxPointPtr+rgba_offset_arg);
 
       // add color information
@@ -222,7 +222,7 @@ public:
 
     }
 
-    const uindex_t len = static_cast<uindex_t> (indexVector_arg.size());
+    auto len = static_cast<uindex_t> (indexVector_arg.size());
     if (len > 1)
     {
       unsigned char diffRed;
@@ -237,7 +237,7 @@ public:
       // iterate over points for differential encoding
       for (const auto& idx: indexVector_arg)
       {
-        const char* idxPointPtr = reinterpret_cast<const char*> (&(*inputCloud_arg)[idx]);
+        auto idxPointPtr = reinterpret_cast<const char*> (&(*inputCloud_arg)[idx]);
         const int& colorInt = *reinterpret_cast<const int*> (idxPointPtr+rgba_offset_arg);
 
         // extract color components and do XOR encoding with predicted average color
@@ -300,9 +300,9 @@ public:
       if (pointCount > 1)
       {
         // get differential color information from input vector
-        unsigned char diffRed   = static_cast<unsigned char> (*(pointDiffColorDataVector_Iterator_++));
-        unsigned char diffGreen = static_cast<unsigned char> (*(pointDiffColorDataVector_Iterator_++));
-        unsigned char diffBlue  = static_cast<unsigned char> (*(pointDiffColorDataVector_Iterator_++));
+        auto diffRed   = static_cast<unsigned char> (*(pointDiffColorDataVector_Iterator_++));
+        auto diffGreen = static_cast<unsigned char> (*(pointDiffColorDataVector_Iterator_++));
+        auto diffBlue  = static_cast<unsigned char> (*(pointDiffColorDataVector_Iterator_++));
 
         // invert bit shifts during encoding
         diffRed = static_cast<unsigned char> (diffRed << colorBitReduction_);
@@ -320,7 +320,7 @@ public:
         colorInt = (avgRed << 0) | (avgGreen << 8) | (avgBlue << 16);
       }
 
-      char* idxPointPtr = reinterpret_cast<char*> (&(*outputCloud_arg)[beginIdx_arg + i]);
+      auto idxPointPtr = reinterpret_cast<char*> (&(*outputCloud_arg)[beginIdx_arg + i]);
       int& pointColor = *reinterpret_cast<int*> (idxPointPtr+rgba_offset_arg);
       // assign color to point from point cloud
       pointColor=colorInt;
@@ -339,12 +339,12 @@ public:
     assert (beginIdx_arg <= endIdx_arg);
 
     // amount of points to be decoded
-    unsigned int pointCount = static_cast<unsigned int> (endIdx_arg - beginIdx_arg);
+    auto pointCount = endIdx_arg - beginIdx_arg;
 
     // iterate over points
-    for (std::size_t i = 0; i < pointCount; i++)
+    for (auto i = 0u; i < pointCount; ++i)
     {
-      char* idxPointPtr = reinterpret_cast<char*> (&(*outputCloud_arg)[beginIdx_arg + i]);
+      auto idxPointPtr = reinterpret_cast<char*> (&(*outputCloud_arg)[beginIdx_arg + i]);
       int& pointColor = *reinterpret_cast<int*> (idxPointPtr+rgba_offset_arg);
       // assign color to point from point cloud
       pointColor = defaultColor_;

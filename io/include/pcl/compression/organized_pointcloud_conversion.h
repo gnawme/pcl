@@ -113,7 +113,7 @@ struct OrganizedConversion<PointT, false>
       if (pcl::isFinite (point))
       {
         // Inverse depth quantization
-        std::uint16_t disparity = static_cast<std::uint16_t> ( focalLength_arg / (disparityScale_arg * point.z) + disparityShift_arg / disparityScale_arg);
+        auto disparity = static_cast<std::uint16_t> ( focalLength_arg / (disparityScale_arg * point.z) + disparityShift_arg / disparityScale_arg);
         disparityData_arg.push_back (disparity);
       }
       else
@@ -153,16 +153,16 @@ struct OrganizedConversion<PointT, false>
     cloud_arg.reserve (cloud_size);
 
     // Define point cloud parameters
-    cloud_arg.width = static_cast<std::uint32_t> (width_arg);
-    cloud_arg.height = static_cast<std::uint32_t> (height_arg);
+    cloud_arg.width = width_arg;
+    cloud_arg.height = height_arg;
     cloud_arg.is_dense = false;
 
     // Calculate center of disparity image
-    int centerX = static_cast<int> (width_arg / 2);
-    int centerY = static_cast<int> (height_arg / 2);
+    auto centerX = static_cast<int> (width_arg / 2);
+    auto centerY = static_cast<int> (height_arg / 2);
 
     const float fl_const = 1.0f / focalLength_arg;
-    static const float bad_point = std::numeric_limits<float>::quiet_NaN ();
+    constexpr float bad_point = std::numeric_limits<float>::quiet_NaN ();
 
     std::size_t i = 0;
     for (int y = -centerY; y < centerY; ++y )
@@ -218,16 +218,16 @@ struct OrganizedConversion<PointT, false>
     cloud_arg.reserve (cloud_size);
 
     // Define point cloud parameters
-    cloud_arg.width = static_cast<std::uint32_t> (width_arg);
-    cloud_arg.height = static_cast<std::uint32_t> (height_arg);
+    cloud_arg.width = width_arg;
+    cloud_arg.height = height_arg;
     cloud_arg.is_dense = false;
 
     // Calculate center of disparity image
-    int centerX = static_cast<int> (width_arg / 2);
-    int centerY = static_cast<int> (height_arg / 2);
+    auto centerX = static_cast<int> (width_arg / 2);
+    auto centerY = static_cast<int> (height_arg / 2);
 
     const float fl_const = 1.0f / focalLength_arg;
-    static const float bad_point = std::numeric_limits<float>::quiet_NaN ();
+    constexpr float bad_point = std::numeric_limits<float>::quiet_NaN ();
 
     std::size_t i = 0;
     for (int y = -centerY; y < centerY; ++y )
@@ -303,7 +303,7 @@ struct OrganizedConversion<PointT, true>
         if (convertToMono)
         {
           // Encode point color
-          std::uint8_t grayvalue = static_cast<std::uint8_t>(0.2989 * point.r
+          auto grayvalue = static_cast<std::uint8_t>(0.2989 * point.r
                                                     + 0.5870 * point.g
                                                     + 0.1140 * point.b);
 
@@ -317,7 +317,7 @@ struct OrganizedConversion<PointT, true>
         }
 
         // Inverse depth quantization
-        std::uint16_t disparity = static_cast<std::uint16_t> (focalLength_arg / (disparityScale_arg * point.z) + disparityShift_arg / disparityScale_arg);
+        auto disparity = static_cast<std::uint16_t> (focalLength_arg / (disparityScale_arg * point.z) + disparityShift_arg / disparityScale_arg);
 
         // Encode disparity
         disparityData_arg.push_back (disparity);
@@ -384,16 +384,16 @@ struct OrganizedConversion<PointT, true>
     cloud_arg.reserve(cloud_size);
 
     // Define point cloud parameters
-    cloud_arg.width = static_cast<std::uint32_t>(width_arg);
-    cloud_arg.height = static_cast<std::uint32_t>(height_arg);
+    cloud_arg.width = width_arg;
+    cloud_arg.height = height_arg;
     cloud_arg.is_dense = false;
 
     // Calculate center of disparity image
-    int centerX = static_cast<int>(width_arg/2);
-    int centerY = static_cast<int>(height_arg/2);
+    auto centerX = static_cast<int>(width_arg/2);
+    auto centerY = static_cast<int>(height_arg/2);
 
     const float fl_const = 1.0f/focalLength_arg;
-    static const float bad_point = std::numeric_limits<float>::quiet_NaN ();
+    constexpr float bad_point = std::numeric_limits<float>::quiet_NaN ();
 
     std::size_t i = 0;
     for (int y = -centerY; y < centerY; ++y )
@@ -486,16 +486,16 @@ struct OrganizedConversion<PointT, true>
     cloud_arg.reserve(cloud_size);
 
     // Define point cloud parameters
-    cloud_arg.width = static_cast<std::uint32_t>(width_arg);
-    cloud_arg.height = static_cast<std::uint32_t>(height_arg);
+    cloud_arg.width = width_arg;
+    cloud_arg.height = height_arg;
     cloud_arg.is_dense = false;
 
     // Calculate center of disparity image
-    int centerX = static_cast<int>(width_arg/2);
-    int centerY = static_cast<int>(height_arg/2);
+    auto centerX = static_cast<int>(width_arg/2);
+    auto centerY = static_cast<int>(height_arg/2);
 
     const float fl_const = 1.0f/focalLength_arg;
-    static const float bad_point = std::numeric_limits<float>::quiet_NaN ();
+    constexpr float bad_point = std::numeric_limits<float>::quiet_NaN ();
 
     std::size_t i = 0;
     for (int y = -centerY; y < centerY; ++y )

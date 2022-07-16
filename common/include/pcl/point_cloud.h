@@ -92,7 +92,7 @@ namespace pcl
     {
       //boost::fusion::at_key<Key> (p2_) = p1_[f_idx_++];
       using T = typename pcl::traits::datatype<PointOutT, Key>::type;
-      std::uint8_t* data_ptr = reinterpret_cast<std::uint8_t*>(&p2_) + pcl::traits::offset<PointOutT, Key>::value;
+      auto data_ptr = reinterpret_cast<std::uint8_t*>(&p2_) + pcl::traits::offset<PointOutT, Key>::value;
       *reinterpret_cast<T*>(data_ptr) = static_cast<T> (p1_[f_idx_++]);
     }
 
@@ -123,7 +123,7 @@ namespace pcl
     {
       //p2_[f_idx_++] = boost::fusion::at_key<Key> (p1_);
       using T = typename pcl::traits::datatype<PointInT, Key>::type;
-      const std::uint8_t* data_ptr = reinterpret_cast<const std::uint8_t*>(&p1_) + pcl::traits::offset<PointInT, Key>::value;
+      auto data_ptr = reinterpret_cast<const std::uint8_t*>(&p1_) + pcl::traits::offset<PointInT, Key>::value;
       p2_[f_idx_++] = static_cast<float> (*reinterpret_cast<const T*>(data_ptr));
     }
 
@@ -463,7 +463,7 @@ namespace pcl
       {
         points.resize(count);
         if (width * height != count) {
-          width = static_cast<std::uint32_t>(count);
+          width = count;
           height = 1;
         }
       }
@@ -548,7 +548,7 @@ namespace pcl
       assign(index_t count, const PointT& value)
       {
         points.assign(count, value);
-        width = static_cast<std::uint32_t>(size());
+        width = size();
         height = 1;
       }
 
@@ -578,7 +578,7 @@ namespace pcl
       assign(InputIterator first, InputIterator last)
       {
         points.assign(std::move(first), std::move(last));
-        width = static_cast<std::uint32_t>(size());
+        width = size();
         height = 1;
       }
 
@@ -623,7 +623,7 @@ namespace pcl
       inline assign(std::initializer_list<PointT> ilist)
       {
         points.assign(std::move(ilist));
-        width = static_cast<std::uint32_t>(size());
+        width = size();
         height = 1;
       }
 

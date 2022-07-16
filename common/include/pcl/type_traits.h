@@ -160,7 +160,7 @@ namespace pcl
       {
         exists_ = true;
         using T = typename pcl::traits::datatype<PointInT, Key>::type;
-        const std::uint8_t* data_ptr = reinterpret_cast<const std::uint8_t*>(&pt_) + pcl::traits::offset<PointInT, Key>::value;
+        auto data_ptr = reinterpret_cast<const std::uint8_t*>(&pt_) + pcl::traits::offset<PointInT, Key>::value;
         value_ = static_cast<OutT> (*reinterpret_cast<const T*>(data_ptr));
       }
     }
@@ -209,7 +209,7 @@ namespace pcl
       if (name_ == pcl::traits::name<PointOutT, Key>::value)
       {
         using T = typename pcl::traits::datatype<PointOutT, Key>::type;
-        std::uint8_t* data_ptr = reinterpret_cast<std::uint8_t*>(&pt_) + pcl::traits::offset<PointOutT, Key>::value;
+        auto data_ptr = reinterpret_cast<std::uint8_t*>(&pt_) + pcl::traits::offset<PointOutT, Key>::value;
         *reinterpret_cast<T*>(data_ptr) = static_cast<T> (value_);
       }
     }
@@ -228,7 +228,7 @@ namespace pcl
   template <typename PointT, typename ValT> inline void
   setFieldValue (PointT &pt, std::size_t field_offset, const ValT &value)
   {
-    std::uint8_t* data_ptr = reinterpret_cast<std::uint8_t*>(&pt) + field_offset;
+    auto data_ptr = reinterpret_cast<std::uint8_t*>(&pt) + field_offset;
     *reinterpret_cast<ValT*>(data_ptr) = value;
   }
 
@@ -240,7 +240,7 @@ namespace pcl
   template <typename PointT, typename ValT> inline void
   getFieldValue (const PointT &pt, std::size_t field_offset, ValT &value)
   {
-    const std::uint8_t* data_ptr = reinterpret_cast<const std::uint8_t*>(&pt) + field_offset;
+    auto data_ptr = reinterpret_cast<const std::uint8_t*>(&pt) + field_offset;
     value = *reinterpret_cast<const ValT*>(data_ptr);
   }
 

@@ -35,11 +35,11 @@ class PreProcessorAndNormalEstimator {
 
     std::vector<float> avg_distances(input->size());
     // Iterate through the source data set
-    for (std::size_t i = 0; i < input->size(); ++i) {
+    for (auto i = 0u; i < input->size(); ++i) {
       tree->nearestKSearch((*input)[i], 9, nn_indices, nn_distances);
 
       float avg_dist_neighbours = 0.0;
-      for (std::size_t j = 1; j < nn_indices.size(); j++)
+      for (auto j = 1u; j < nn_indices.size(); ++j)
         avg_dist_neighbours += std::sqrt(nn_distances[j]);
 
       avg_dist_neighbours /= static_cast<float>(nn_indices.size());
@@ -48,31 +48,29 @@ class PreProcessorAndNormalEstimator {
     }
 
     // median: nth_element is faster than sorting everything
+    auto halfSize = (avg_distances.size() / 2 + 1);
     std::nth_element(avg_distances.begin(),
-                     avg_distances.begin() + (avg_distances.size() / 2 + 1),
+                     avg_distances.begin() + halfSize,
                      avg_distances.end());
-    float avg = avg_distances[static_cast<int>(avg_distances.size()) / 2 + 1];
+    float avg = avg_distances[halfSize];
     return avg;
   }
 
 public:
-  bool compute_mesh_resolution_;
-  bool do_voxel_grid_;
-  bool remove_outliers_;
+  bool compute_mesh_resolution_ = false;
+  bool do_voxel_grid_= false;
+  bool remove_outliers_= false;
 
   // this values are used when CMR=false
-  float grid_resolution_;
-  float normal_radius_;
+  float grid_resolution_ = 0.0;
+  float normal_radius_ = 0.0;
 
   // this are used when CMR=true
-  float factor_normals_;
-  float factor_voxel_grid_;
-  float mesh_resolution_;
+  float factor_normals_ = 0.0;
+  float factor_voxel_grid_ = 0.0;
+  float mesh_resolution_ = 0.0;
 
-  PreProcessorAndNormalEstimator()
-  {
-    remove_outliers_ = do_voxel_grid_ = compute_mesh_resolution_ = false;
-  }
+  PreProcessorAndNormalEstimator() = default;
 
   void
   setFactorsForCMR(float f1, float f2)
@@ -145,8 +143,9 @@ public:
       float radius = normal_radius_;
       if (compute_mesh_resolution_) {
         radius = mesh_resolution_ * factor_normals_;
-        if (do_voxel_grid_)
+        if (do_voxel_grid_) {
           radius *= factor_voxel_grid_;
+        }
       }
 
       // in synthetic views the render grazes some parts of the objects
@@ -168,8 +167,9 @@ public:
     float radius = normal_radius_;
     if (compute_mesh_resolution_) {
       radius = mesh_resolution_ * factor_normals_;
-      if (do_voxel_grid_)
+      if (do_voxel_grid_) {
         radius *= factor_voxel_grid_;
+      }
     }
 
     if (out->isOrganized()) {
@@ -190,11 +190,12 @@ public:
         pcl::ScopeTime t("check nans...");
         pcl::index_t j = 0;
         for (const auto& point : *out) {
-          if (!isXYZFinite(point))
+          if (!isXYZFinite(point)) {
             continue;
+          }
 
           (*out)[j] = point;
-          j++;
+          ++j;
         }
 
         if (j != static_cast<pcl::index_t>(out->size())) {
@@ -224,12 +225,13 @@ public:
       pcl::ScopeTime t("check nans...");
       int j = 0;
       for (std::size_t i = 0; i < normals->size(); ++i) {
-        if (!isNormalFinite((*normals)[i]))
+        if (!isNormalFinite((*normals)[i])) {
           continue;
+        }
 
         (*normals)[j] = (*normals)[i];
         (*out)[j] = (*out)[i];
-        j++;
+        ++j;
       }
 
       normals->points.resize(j);
@@ -245,8 +247,9 @@ public:
       pcl::ScopeTime t("check nans organized...");
       bool NaNs = false;
       for (std::size_t i = 0; i < normals->size(); ++i) {
-        if (!isNormalFinite((*normals)[i]))
+        if (!isNormalFinite((*normals)[i])) {
           continue;
+        }
 
         NaNs = true;
 

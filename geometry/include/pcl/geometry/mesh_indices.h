@@ -234,7 +234,7 @@ inline HalfEdgeIndex
 toHalfEdgeIndex(const EdgeIndex& index, const bool get_first = true)
 {
   return (index.isValid()
-              ? HalfEdgeIndex(index.get() * 2 + static_cast<int>(!get_first))
+              ? HalfEdgeIndex(index.get() * 2 + (get_first ? 0 : 1))
               : HalfEdgeIndex());
 }
 } // End namespace geometry
