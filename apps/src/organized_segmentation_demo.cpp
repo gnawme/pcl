@@ -30,10 +30,10 @@ displayPlanarRegions(
   unsigned char blu[6] = {0, 0, 255, 0, 255, 255};
 
   pcl::PointCloud<PointT>::Ptr contour(new pcl::PointCloud<PointT>);
-
-  for (std::size_t i = 0; i < regions.size(); i++) {
-    Eigen::Vector3f centroid = regions[i].getCentroid();
-    Eigen::Vector4f model = regions[i].getCoefficients();
+  auto i = 0;
+  for (const auto& region : regions) {
+    Eigen::Vector3f centroid = region.getCentroid();
+    Eigen::Vector4f model = region.getCoefficients();
     pcl::PointXYZ pt1 = pcl::PointXYZ(centroid[0], centroid[1], centroid[2]);
     pcl::PointXYZ pt2 = pcl::PointXYZ(centroid[0] + (0.5f * model[0]),
                                       centroid[1] + (0.5f * model[1]),
@@ -41,7 +41,7 @@ displayPlanarRegions(
     sprintf(name, "normal_%d", unsigned(i));
     viewer->addArrow(pt2, pt1, 1.0, 0, 0, false, name);
 
-    contour->points = regions[i].getContour();
+    contour->points = region.getContour();
     sprintf(name, "plane_%02d", int(i));
     pcl::visualization::PointCloudColorHandlerCustom<PointT> color(
         contour, red[i % 6], grn[i % 6], blu[i % 6]);
@@ -49,6 +49,7 @@ displayPlanarRegions(
       viewer->addPointCloud(contour, color, name);
     viewer->setPointCloudRenderingProperties(
         pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, name);
+    ++i;
   }
 }
 
@@ -61,10 +62,11 @@ displayEuclideanClusters(const pcl::PointCloud<PointT>::CloudVectorType& cluster
   unsigned char grn[6] = {0, 255, 0, 255, 0, 255};
   unsigned char blu[6] = {0, 0, 255, 0, 255, 255};
 
-  for (std::size_t i = 0; i < clusters.size(); i++) {
+  auto i = 0;
+  for (const auto& cluster : clusters) {
     sprintf(name, "cluster_%d", int(i));
     pcl::PointCloud<PointT>::ConstPtr cluster_cloud(
-        new pcl::PointCloud<PointT>(clusters[i]));
+        new pcl::PointCloud<PointT>(cluster));
     pcl::visualization::PointCloudColorHandlerCustom<PointT> color0(
         cluster_cloud, red[i % 6], grn[i % 6], blu[i % 6]);
     if (!viewer->updatePointCloud(cluster_cloud, color0, name))
@@ -73,6 +75,7 @@ displayEuclideanClusters(const pcl::PointCloud<PointT>::CloudVectorType& cluster
         pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, name);
     viewer->setPointCloudRenderingProperties(
         pcl::visualization::PCL_VISUALIZER_OPACITY, 0.3, name);
+    ++i;
   }
 }
 
