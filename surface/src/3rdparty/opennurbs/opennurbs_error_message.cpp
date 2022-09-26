@@ -16,9 +16,16 @@
 
 #include "pcl/surface/3rdparty/opennurbs/opennurbs.h"
 
+#if !defined(ON_COMPILING_OPENNURBS)
+// This check is included in all opennurbs source .c and .cpp files to insure
+// ON_COMPILING_OPENNURBS is defined when opennurbs source is compiled.
+// When opennurbs source is being compiled, ON_COMPILING_OPENNURBS is defined 
+// and the opennurbs .h files alter what is declared and how it is declared.
+#error ON_COMPILING_OPENNURBS must be defined when compiling opennurbs
+#endif
 
 void ON_ErrorMessage(
-        int,              // 0=warning - serious problem that code is designed to handle
+        int message_type, // 0=warning - serious problem that code is designed to handle
                           // 1=error - serious problem code will attempt to handle
                           //           The thing causing the error is a bug that must
                           //           be fixed.
@@ -30,22 +37,18 @@ void ON_ErrorMessage(
   // to do whatever you want to with the message.
   if ( sErrorMessage && sErrorMessage[0] ) 
   {
-
-#if defined(ON_PURIFY_BUILD) && defined(ON_32BIT_POINTER)
-    // 10 December 2003 Dale Lear
-    //     Make ON_ERROR/ON_WARNING messages show up in Purify
-    PurifyPrintf("%s",sErrorMessage);
-#endif
-
-#if defined(ON_OS_WINDOWS)
+#if defined(ON_COMPILER_MSC)
     ::OutputDebugStringA( "\n" );
     ::OutputDebugStringA( sErrorMessage );
     ::OutputDebugStringA( "\n" );
-#else
-#if defined(ON__DEBUG)
+#elif defined(ON__DEBUG)
     // not using OutputDebugStringA
     printf("\n%s\n",sErrorMessage);
 #endif
-#endif
   }
 }
+
+
+
+
+

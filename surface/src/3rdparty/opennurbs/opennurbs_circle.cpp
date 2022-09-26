@@ -16,16 +16,13 @@
 
 #include "pcl/surface/3rdparty/opennurbs/opennurbs.h"
 
-ON_Circle::ON_Circle() 
-                  : radius(1.0)
-{
-  //m_point[0].Zero();
-  //m_point[1].Zero();
-  //m_point[2].Zero();
-}
-
-ON_Circle::~ON_Circle()
-{}
+#if !defined(ON_COMPILING_OPENNURBS)
+// This check is included in all opennurbs source .c and .cpp files to insure
+// ON_COMPILING_OPENNURBS is defined when opennurbs source is compiled.
+// When opennurbs source is being compiled, ON_COMPILING_OPENNURBS is defined 
+// and the opennurbs .h files alter what is declared and how it is declared.
+#error ON_COMPILING_OPENNURBS must be defined when compiling opennurbs
+#endif
 
 ON_Circle::ON_Circle( const ON_Plane& p, double r )
 {
@@ -176,11 +173,11 @@ bool ON_Circle::Transform( const ON_Xform& xform )
     }
     if (    0.0 == b 
          && 0.0 == c 
-         && fabs(r1-r1) <= ON_SQRT_EPSILON*(r1+r2) 
+         && fabs(r1-r2) <= ON_SQRT_EPSILON*(r1+r2) 
        )
     {
       // transform is a similarity
-      s = 0.5*(r1+r2); // = sqrt(r1*r2) but more accurate
+      s = (r1 == r2) ? r1 : (0.5*(r1+r2)); // = sqrt(r1*r2) but more accurate
     }
     else
     {
@@ -349,10 +346,11 @@ bool ON_Circle::Create(
       radius = C.DistanceTo(P);
       if ( X.Unitize() ) {
         Y = ON_CrossProduct( Z, X );
-        if ( Y*Pdir < 0.0 ) {
-          Z.Reverse();
-          Y.Reverse();
-          RM.Reverse();
+        if ( Y*Pdir < 0.0 ) 
+        {
+          Z = -Z;
+          Y = -Y;
+          RM = -RM;
         }
         plane.origin = C;
         plane.xaxis = X;
@@ -379,12 +377,12 @@ bool ON_Circle::IsValid() const
   return rc;
 }
 
-bool ON_Circle::IsInPlane( const ON_Plane& plane, double tolerance ) const
+bool ON_Circle::IsInPlane( const ON_Plane& base_plane, double tolerance ) const
 {
   double d;
   int i;
   for ( i = 0; i < 8; i++ ) {
-    d = plane.plane_equation.ValueAt( PointAt(0.25*i*ON_PI) );
+    d = base_plane.plane_equation.ValueAt( PointAt(0.25*i*ON_PI) );
     if ( fabs(d) > tolerance )
       return false;
   }
@@ -403,7 +401,8 @@ ON_3dVector ON_Circle::DerivativeAt(
 {
   double r0 = radius;
   double r1 = radius;
-  switch (abs(d)%4) {
+  switch (std::abs(d) % 4)
+  {
   case 0:
     r0 *=  cos(t);
     r1 *=  sin(t);
@@ -490,7 +489,7 @@ ON_2dVector ON_Circle::GradientAt(
     g.y = rr*p.y;
   }
   else {
-    g.Zero();
+    g = ON_2dVector::ZeroVector;
   }
   return g;
 }
@@ -549,6 +548,11 @@ bool ON_Circle::Reverse()
   plane.zaxis = -plane.zaxis;
   plane.UpdateEquation();
   return true;
+}
+
+double ON_Circle::MaximumCoordinate() const
+{
+  return  plane.origin.MaximumCoordinate() + radius;
 }
 
 int ON_Circle::GetNurbForm( ON_NurbsCurve& nurbscurve ) const

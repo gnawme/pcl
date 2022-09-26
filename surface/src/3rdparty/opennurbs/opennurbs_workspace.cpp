@@ -16,6 +16,14 @@
 
 #include "pcl/surface/3rdparty/opennurbs/opennurbs.h"
 
+#if !defined(ON_COMPILING_OPENNURBS)
+// This check is included in all opennurbs source .c and .cpp files to insure
+// ON_COMPILING_OPENNURBS is defined when opennurbs source is compiled.
+// When opennurbs source is being compiled, ON_COMPILING_OPENNURBS is defined 
+// and the opennurbs .h files alter what is declared and how it is declared.
+#error ON_COMPILING_OPENNURBS must be defined when compiling opennurbs
+#endif
+
 ON_Workspace::ON_Workspace() 
 : m_pFileBlk(0)
 , m_pMemBlk(0)
@@ -25,6 +33,7 @@ ON_Workspace::~ON_Workspace()
 {
   Destroy();
 }
+
 
 struct ON_Workspace_FBLK 
 {
@@ -49,22 +58,22 @@ void ON_Workspace::Destroy()
   m_pFileBlk = 0;
 
   struct ON_Workspace_MBLK* pNext = m_pMemBlk;
-  struct ON_Workspace_MBLK* p = NULL;
+  struct ON_Workspace_MBLK* p = nullptr;
   while ( pNext ) {
     p = pNext;
     pNext = pNext->pNext;
     if ( p->pMem ) {
       onfree(p->pMem);
-      p->pMem = NULL;
+      p->pMem = nullptr;
     }
     onfree( p );
   }
   m_pMemBlk = 0;
 }
 
-void* ON_Workspace::GetMemory( std::size_t size )
+void* ON_Workspace::GetMemory( size_t size )
 {
-  void* p = NULL;
+  void* p = nullptr;
   if ( size > 0 ) 
   {
     struct ON_Workspace_MBLK* pBlk = (struct ON_Workspace_MBLK*)onmalloc(sizeof(*pBlk));
@@ -78,9 +87,9 @@ void* ON_Workspace::GetMemory( std::size_t size )
   return p;
 }
 
-void* ON_Workspace::GrowMemory( void* p, std::size_t size )
+void* ON_Workspace::GrowMemory( void* p, size_t size )
 {
-  void* newp = NULL;
+  void* newp = nullptr;
   if ( !p ) {
     newp = GetMemory(size);
   }
@@ -117,18 +126,18 @@ void ON_Workspace::KeepAllMemory()
   }
 }
 
-int ON_Workspace::KeepMemory( void* p )
+bool ON_Workspace::KeepMemory( void* p )
 {
   int rc = false;
   if ( p ) {
-    struct ON_Workspace_MBLK* pPrevBlk = NULL;
+    struct ON_Workspace_MBLK* pPrevBlk = nullptr;
     struct ON_Workspace_MBLK* pBlk = m_pMemBlk;
     while ( pBlk ) {
       if ( pBlk->pMem == p ) {
         // Remove pBlk from list so ~ON_Workspace() won't onfree() its memory
         // and any future GrowMemory...() or KeepMemory() calls won't have
         // to search past it.
-        pBlk->pMem = NULL;
+        pBlk->pMem = nullptr;
         if ( pPrevBlk ) {
           pPrevBlk->pNext = pBlk->pNext;
         }
@@ -146,34 +155,34 @@ int ON_Workspace::KeepMemory( void* p )
   return rc;
 }
 
-int* ON_Workspace::GetIntMemory( std::size_t size )
+int* ON_Workspace::GetIntMemory( size_t size )
 {
   int* pi = (int*)(GetMemory(size*sizeof(*pi)));
   return pi;
 }
 
-double* ON_Workspace::GetDoubleMemory( std::size_t size )
+double* ON_Workspace::GetDoubleMemory( size_t size )
 {
   double* pd = (double*)(GetMemory(size*sizeof(*pd)));
   return pd;
 }
 
-ON_3dPoint* ON_Workspace::GetPointMemory( std::size_t size )
+ON_3dPoint* ON_Workspace::GetPointMemory( size_t size )
 {
   ON_3dPoint* p3d = (ON_3dPoint*)(GetMemory(size*sizeof(*p3d)));
   return p3d;
 }
 
-ON_3dVector* ON_Workspace::GetVectorMemory( std::size_t size )
+ON_3dVector* ON_Workspace::GetVectorMemory( size_t size )
 {
   ON_3dVector* v3d = (ON_3dVector*)(GetMemory(size*sizeof(*v3d)));
   return v3d;
 }
 
-int** ON_Workspace::GetIntMemory( std::size_t row_count, std::size_t col_count )
+int** ON_Workspace::GetIntMemory( size_t row_count, size_t col_count )
 {
   int** p = 0;
-  std::size_t i;
+  size_t i;
   if ( row_count > 0 && col_count > 0 )
   {
     p = (int**)GetMemory(row_count*(sizeof(*p) + col_count*sizeof(**p)));
@@ -189,10 +198,10 @@ int** ON_Workspace::GetIntMemory( std::size_t row_count, std::size_t col_count )
   return p;
 }
 
-double** ON_Workspace::GetDoubleMemory( std::size_t row_count, std::size_t col_count )
+double** ON_Workspace::GetDoubleMemory( size_t row_count, size_t col_count )
 {
   double** p = 0;
-  std::size_t i;
+  size_t i;
   if ( row_count > 0 && col_count > 0 )
   {
     // i keeps doubles aligned
@@ -213,25 +222,25 @@ double** ON_Workspace::GetDoubleMemory( std::size_t row_count, std::size_t col_c
 }
 
 
-int* ON_Workspace::GrowIntMemory( int* p, std::size_t size )
+int* ON_Workspace::GrowIntMemory( int* p, size_t size )
 {
   int* pi = (int*)(GrowMemory(p,size*sizeof(*pi)));
   return pi;
 }
 
-double* ON_Workspace::GrowDoubleMemory( double* p, std::size_t size )
+double* ON_Workspace::GrowDoubleMemory( double* p, size_t size )
 {
   double* pd = (double*)(GrowMemory(p,size*sizeof(*pd)));
   return pd;
 }
 
-ON_3dPoint* ON_Workspace::GrowPointMemory( ON_3dPoint* p, std::size_t size )
+ON_3dPoint* ON_Workspace::GrowPointMemory( ON_3dPoint* p, size_t size )
 {
   ON_3dPoint* p3d = (ON_3dPoint*)(GrowMemory(p,size*sizeof(*p3d)));
   return p3d;
 }
 
-ON_3dVector* ON_Workspace::GrowVectorMemory( ON_3dVector* p, std::size_t size )
+ON_3dVector* ON_Workspace::GrowVectorMemory( ON_3dVector* p, size_t size )
 {
   ON_3dVector* v3d = (ON_3dVector*)(GrowMemory(p,size*sizeof(*v3d)));
   return v3d;
@@ -264,14 +273,14 @@ FILE* ON_Workspace::OpenFile( const wchar_t* sFileName, const wchar_t* sMode )
   return pFile;
 }
 
-int ON_Workspace::KeepFile( FILE* pFile )
+bool ON_Workspace::KeepFile( FILE* pFile )
 {
-  int rc = false;
+  bool rc = false;
   if ( pFile ) {
     struct ON_Workspace_FBLK* pFileBlk = m_pFileBlk;
     while ( pFileBlk ) {
       if ( pFileBlk->pFile == pFile ) {
-        pFileBlk->pFile = NULL;
+        pFileBlk->pFile = nullptr;
         rc = true;
         break;
       }

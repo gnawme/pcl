@@ -16,6 +16,13 @@
 
 #include "pcl/surface/3rdparty/opennurbs/opennurbs.h"
 
+#if !defined(ON_COMPILING_OPENNURBS)
+// This check is included in all opennurbs source .c and .cpp files to insure
+// ON_COMPILING_OPENNURBS is defined when opennurbs source is compiled.
+// When opennurbs source is being compiled, ON_COMPILING_OPENNURBS is defined 
+// and the opennurbs .h files alter what is declared and how it is declared.
+#error ON_COMPILING_OPENNURBS must be defined when compiling opennurbs
+#endif
 
 ON_Buffer::ON_Buffer()
 : m_buffer_size(0)
@@ -23,7 +30,6 @@ ON_Buffer::ON_Buffer()
 , m_first_segment(0)
 , m_last_segment(0)
 , m_current_segment(0)
-, m_heap(0)
 , m_error_handler(0)
 , m_last_error(0)
 {
@@ -43,7 +49,6 @@ void ON_Buffer::EmergencyDestroy()
   m_first_segment = 0;
   m_last_segment = 0;
   m_current_segment = 0;
-  m_heap = 0;
   m_error_handler = 0;
   m_last_error = 0;
 }
@@ -73,13 +78,13 @@ int ON_Buffer::Compare( const ON_Buffer& a, const ON_Buffer& b )
   struct ON_BUFFER_SEGMENT* bseg = b.m_first_segment;
   const ON__UINT64 buffer_size = a.m_buffer_size;
   ON__UINT64 size = 0;
-  std::size_t aoffset = 0;
-  std::size_t boffset = 0;
-  std::size_t asegsize = 0;
-  std::size_t bsegsize = 0;  
-  std::size_t asize = 0;
-  std::size_t bsize = 0;  
-  std::size_t sz;
+  size_t aoffset = 0;
+  size_t boffset = 0;
+  size_t asegsize = 0;
+  size_t bsegsize = 0;  
+  size_t asize = 0;
+  size_t bsize = 0;  
+  size_t sz;
   int rc = 0;
 
   while ( 0 != aseg && 0 != bseg && size < buffer_size )
@@ -91,7 +96,7 @@ int ON_Buffer::Compare( const ON_Buffer& a, const ON_Buffer& b )
         aseg = aseg->m_next_segment;
         continue;
       }
-      asegsize = (std::size_t)(aseg->m_segment_position1 - aseg->m_segment_position0);
+      asegsize = (size_t)(aseg->m_segment_position1 - aseg->m_segment_position0);
       aoffset = 0;
     }
 
@@ -102,7 +107,7 @@ int ON_Buffer::Compare( const ON_Buffer& a, const ON_Buffer& b )
         bseg = bseg->m_next_segment;
         continue;
       }
-      bsegsize = (std::size_t)(bseg->m_segment_position1 - bseg->m_segment_position0);
+      bsegsize = (size_t)(bseg->m_segment_position1 - bseg->m_segment_position0);
       boffset = 0;
     }
     
@@ -134,8 +139,8 @@ int ON_Buffer::Compare( const ON_Buffer& a, const ON_Buffer& b )
     bsize = bsegsize - boffset;
     sz = (asize <= bsize) ? asize : bsize;
     if ( size + sz > buffer_size )
-      sz = (std::size_t)(buffer_size - size);
-    rc = memcmp( aseg->m_segment_buffer + aoffset, bseg->m_segment_buffer + boffset, (std::size_t)sz );
+      sz = (size_t)(buffer_size - size);
+    rc = memcmp( aseg->m_segment_buffer + aoffset, bseg->m_segment_buffer + boffset, (size_t)sz );
     if ( 0 != rc )
       return ((rc<0)?-1:1);
     aoffset += sz;
@@ -159,7 +164,6 @@ ON_Buffer::ON_Buffer( const ON_Buffer& src )
 , m_first_segment(0)
 , m_last_segment(0)
 , m_current_segment(0)
-, m_heap(src.m_heap)
 , m_error_handler(0)
 , m_last_error(0)
 {
@@ -256,9 +260,10 @@ bool ON_Buffer::SeekFromEnd( ON__INT64 offset )
 
 bool ON_Buffer::Compact()
 {
+  bool rc = false;
   if ( 0 == m_buffer_size )
   {
-    ChangeSize(0); // frees all heap and zeros everything but m_current_position.
+    rc = ChangeSize(0); // frees all heap and zeros everything but m_current_position.
     m_current_segment = 0;
   }
   else if ( 0 != m_last_segment 
@@ -266,14 +271,16 @@ bool ON_Buffer::Compact()
             && m_buffer_size <= m_last_segment->m_segment_position1
             )
   {
-    if ( m_buffer_size != m_last_segment->m_segment_position1 )
+    if ( m_buffer_size == m_last_segment->m_segment_position1 )
+      rc = true;
+    else
     {
       ON__UINT64 sizeof_segment_buffer = m_buffer_size - m_last_segment->m_segment_position0;
       struct ON_BUFFER_SEGMENT* prev_segment = m_last_segment->m_prev_segment;
       void* last_buffer = ( 0 != m_last_segment->m_segment_buffer && m_last_segment->m_segment_buffer != (unsigned char*)(m_last_segment+1) )
                         ? m_last_segment->m_segment_buffer
                         : 0;
-      struct ON_BUFFER_SEGMENT* new_last_segment = (struct ON_BUFFER_SEGMENT*)onrealloc(m_last_segment,sizeof(*m_last_segment) + ((std::size_t)sizeof_segment_buffer)); // sizeof_segment_buffer always < 0xFFFFFFFF
+      struct ON_BUFFER_SEGMENT* new_last_segment = (struct ON_BUFFER_SEGMENT*)onrealloc(m_last_segment,sizeof(*m_last_segment) + ((size_t)sizeof_segment_buffer)); // sizeof_segment_buffer always < 0xFFFFFFFF
       if ( 0 != new_last_segment )
       {
         if ( new_last_segment != m_last_segment || 0 != last_buffer )
@@ -281,7 +288,7 @@ bool ON_Buffer::Compact()
           new_last_segment->m_segment_buffer = (unsigned char*)(new_last_segment+1);
           if ( 0 != last_buffer )
           {
-            memcpy(new_last_segment->m_segment_buffer,last_buffer,(std::size_t)sizeof_segment_buffer);
+            memcpy(new_last_segment->m_segment_buffer,last_buffer,(size_t)sizeof_segment_buffer);
             onfree(last_buffer);
             last_buffer = 0;
           }
@@ -298,6 +305,7 @@ bool ON_Buffer::Compact()
           }
         }
         m_last_segment->m_segment_position1 = m_buffer_size;
+        rc = true;
       }
     }
   }
@@ -356,7 +364,7 @@ bool ON_Buffer::ChangeSize(ON__UINT64 buffer_size)
         {
           memset(m_last_segment->m_segment_buffer + (buffer_size - m_last_segment->m_segment_position0),
                  0,
-                 (std::size_t)(m_last_segment->m_segment_position1 - buffer_size)
+                 (size_t)(m_last_segment->m_segment_position1 - buffer_size)
                  );
         }
         m_buffer_size = buffer_size;
@@ -413,13 +421,13 @@ void ON_Buffer::Copy( const ON_Buffer& src )
     ON__UINT64 segment_buffer_size = ( 0 != src_seg->m_segment_buffer)
                                ? src_seg->m_segment_position1 - src_seg->m_segment_position0
                                : 0;
-    dst_seg = (struct ON_BUFFER_SEGMENT*)onmalloc(sizeof(*dst_seg) + ((std::size_t)segment_buffer_size) );
+    dst_seg = (struct ON_BUFFER_SEGMENT*)onmalloc(sizeof(*dst_seg) + ((size_t)segment_buffer_size) );
     memset(dst_seg,0,sizeof(*dst_seg));
 
     if ( segment_buffer_size > 0 )
     {
       dst_seg->m_segment_buffer = (unsigned char*)(dst_seg+1);
-      memcpy( dst_seg->m_segment_buffer, src_seg->m_segment_buffer, (std::size_t)segment_buffer_size ); // segment_buffer_size always < 0xFFFFFFFF
+      memcpy( dst_seg->m_segment_buffer, src_seg->m_segment_buffer, (size_t)segment_buffer_size ); // segment_buffer_size always < 0xFFFFFFFF
     }
 
     if ( 0 == m_first_segment )
@@ -444,7 +452,7 @@ static bool ON_Buffer_IsNotValid()
   return false;
 }
 
-bool ON_Buffer::IsValid( const ON_TextLog* ) const
+bool ON_Buffer::IsValid( const ON_TextLog* text_log ) const
 {
   // This function is primarily used to discover bugs
   // in the ON_Buffer member function code.
@@ -472,6 +480,7 @@ bool ON_Buffer::IsValid( const ON_TextLog* ) const
   if ( 0 != m_last_segment->m_next_segment )
     return ON_Buffer_IsNotValid();
 
+  bool bCurrentSegInList = (0 == m_current_segment);
   ON__UINT64 pos = 0;
   ON__UINT64 u;
   const struct ON_BUFFER_SEGMENT* prev_seg = 0;
@@ -486,6 +495,9 @@ bool ON_Buffer::IsValid( const ON_TextLog* ) const
       return ON_Buffer_IsNotValid();
     if ( pos != seg->m_segment_position0 )
       return ON_Buffer_IsNotValid();
+
+    if ( m_current_segment == seg )
+      bCurrentSegInList = true;
 
     // pos checks prevent infinite loop when the linked list has a cycle;
     u = pos + (seg->m_segment_position1 - seg->m_segment_position0);
@@ -586,7 +598,7 @@ ON__UINT32 ON_Buffer::CRC32( ON__UINT32 current_remainder ) const
       seg_size = m_buffer_size - size;
     }
 
-    current_remainder = ON_CRC32(current_remainder,(std::size_t)seg_size,seg->m_segment_buffer);
+    current_remainder = ON_CRC32(current_remainder,(size_t)seg_size,seg->m_segment_buffer);
     size += seg_size;
     if ( size >= m_buffer_size )
     {
@@ -727,9 +739,9 @@ ON__UINT64 ON_Buffer::Write( ON__UINT64 size, const void* buffer )
         malloc_size *= 2;
 
       malloc_size -= padding_size;
-      // (std::size_t) cast is safe because malloc_size is always <= max_malloc_size = 16*page_size <  0xFFFFFFFF
-      m_current_segment = (struct ON_BUFFER_SEGMENT*)onmalloc((std::size_t)malloc_size); 
-      memset(m_current_segment,0,(std::size_t)malloc_size);
+      // (size_t) cast is safe because malloc_size is always <= max_malloc_size = 16*page_size <  0xFFFFFFFF
+      m_current_segment = (struct ON_BUFFER_SEGMENT*)onmalloc((size_t)malloc_size); 
+      memset(m_current_segment,0,(size_t)malloc_size);
       m_current_segment->m_prev_segment = m_last_segment;
       m_current_segment->m_segment_buffer = (unsigned char*)(m_current_segment + 1);
       if ( 0 != m_last_segment )
@@ -765,7 +777,7 @@ ON__UINT64 ON_Buffer::Write( ON__UINT64 size, const void* buffer )
 
     if ( sz > size )
       sz = size;
-    memcpy( m_current_segment->m_segment_buffer + offset, buffer, (std::size_t)sz );
+    memcpy( m_current_segment->m_segment_buffer + offset, buffer, (size_t)sz );
     m_current_position += sz;
     if ( m_buffer_size < m_current_position )
     {
@@ -841,7 +853,7 @@ ON__UINT64 ON_Buffer::Read( ON__UINT64 size, void* buffer )
 
     if ( sz > size )
       sz = size;
-    memcpy( buffer, m_current_segment->m_segment_buffer + offset, (std::size_t)sz );
+    memcpy( buffer, m_current_segment->m_segment_buffer + offset, (size_t)sz );
     m_current_position += sz;
     rc += sz;
     size -= sz;
@@ -904,6 +916,7 @@ bool ON_Buffer::WriteToBinaryArchive( ON_BinaryArchive& archive ) const
     if ( !archive.WriteInt(buffer_crc) )
       break;
 
+    bool buffer_rc = true;
     ON__UINT64 size = 0;
     for ( struct ON_BUFFER_SEGMENT* seg = m_first_segment; 
           0 != seg && size < m_buffer_size; 
@@ -917,8 +930,9 @@ bool ON_Buffer::WriteToBinaryArchive( ON_BinaryArchive& archive ) const
       ON__UINT64 seg_size = (seg->m_segment_position1 - seg->m_segment_position0);
       if ( seg_size + size > m_buffer_size )
         seg_size = m_buffer_size - size;
-      if ( !archive.WriteByte( (std::size_t)seg_size, seg->m_segment_buffer ) )
+      if ( !archive.WriteByte( (size_t)seg_size, seg->m_segment_buffer ) )
       {
+        buffer_rc = false;
         break;
       }
       size += seg_size;
@@ -991,7 +1005,7 @@ bool ON_Buffer::ReadFromBinaryArchive( ON_BinaryArchive& archive )
       ON__UINT64 a_capacity = saved_buffer_size;
       if ( a_capacity > 16*4096 )
         a_capacity = 16*4096;
-      a = onmalloc((std::size_t)a_capacity);
+      a = onmalloc((size_t)a_capacity);
       if ( 0 == a )
         break;
       ON__UINT64 size = 0;
@@ -1001,7 +1015,7 @@ bool ON_Buffer::ReadFromBinaryArchive( ON_BinaryArchive& archive )
         ON__UINT64 read_size = a_capacity;
         if ( read_size > saved_buffer_size - size )
           read_size = saved_buffer_size - size;
-        if ( !archive.ReadByte((std::size_t)read_size,a) )
+        if ( !archive.ReadByte((size_t)read_size,a) )
         {
           buffer_rc = false;
           break;
@@ -1130,7 +1144,6 @@ bool ON_Buffer::Compress( ON_Buffer& compressed_buffer ) const
       compressed_buffer.m_first_segment = out->m_first_segment;
       compressed_buffer.m_last_segment = out->m_last_segment;
       compressed_buffer.m_current_segment = out->m_current_segment;
-      compressed_buffer.m_heap = out->m_heap;
       compressed_buffer.m_error_handler = out->m_error_handler;
       compressed_buffer.m_last_error = out->m_last_error;
       
@@ -1227,7 +1240,6 @@ bool ON_Buffer::Uncompress( ON_Buffer& uncompressed_buffer ) const
       uncompressed_buffer.m_first_segment = out->m_first_segment;
       uncompressed_buffer.m_last_segment = out->m_last_segment;
       uncompressed_buffer.m_current_segment = out->m_current_segment;
-      uncompressed_buffer.m_heap = out->m_heap;
       uncompressed_buffer.m_error_handler = out->m_error_handler;
       uncompressed_buffer.m_last_error = out->m_last_error;
       
@@ -1242,608 +1254,5 @@ bool ON_Buffer::Uncompress( ON_Buffer& uncompressed_buffer ) const
   return rc;
 }
 
-
-
-
-ON_OBJECT_IMPLEMENT( ON_EmbeddedFile, ON_Object, "1247BEC9-D9A9-46B3-900F-39DE7A355BD3");
-
-bool ON_EmbeddedFile::Create( 
-  const wchar_t* file_full_path_name,
-  bool bCompress
-  )
-{
-  Destroy();
-
-  // ~ON_Workspace will close the file
-  FILE* fp = ON_FileStream::Open(file_full_path_name,L"rb");
-  if ( 0 == fp )
-    return false;
-
-  bool rc = Create(fp,bCompress);
-
-  ON_FileStream::Close(fp);
-  if ( rc )
-  {
-    ON_CreateUuid(m_id);
-    m_full_file_name = file_full_path_name;
-  }
-
-  return rc;
-}
-
-ON_EmbeddedFile::ON_EmbeddedFile()
-: m_id(ON_nil_uuid)
-, m_reserved(0)
-, m_file_size(0)
-, m_file_time(0)
-, m_file_crc(0)
-, m_buffer_crc(0)
-, m_bCompressedBuffer(0)
-{
-  m_reserved3[0] = 0;
-  m_reserved3[1] = 0;
-  m_reserved3[2] = 0;
-  m_reserved3[3] = 0;
-  m_reserved3[4] = 0;
-  m_reserved3[5] = 0;
-  m_reserved3[6] = 0;
-}
-
-ON_EmbeddedFile::ON_EmbeddedFile(const ON_EmbeddedFile& src)
-: ON_Object(src)
-, m_id(src.m_id)
-, m_full_file_name(src.m_full_file_name)
-, m_relative_file_name(src.m_relative_file_name)
-, m_reserved(0)
-, m_file_size(src.m_file_size)
-, m_file_time(src.m_file_time)
-, m_file_crc(src.m_file_crc)
-, m_buffer_crc(src.m_buffer_crc)
-, m_buffer(src.m_buffer)
-, m_bCompressedBuffer(src.m_bCompressedBuffer)  //fixed 29 12 2011
-{
-  m_reserved3[0] = 0;
-  m_reserved3[1] = 0;
-  m_reserved3[2] = 0;
-  m_reserved3[3] = 0;
-  m_reserved3[4] = 0;
-  m_reserved3[5] = 0;
-  m_reserved3[6] = 0;
-}
-
-ON_EmbeddedFile& ON_EmbeddedFile::operator=(const ON_EmbeddedFile& src)
-{
-  if ( this != &src )
-  {
-    Destroy();
-
-    ON_Object::operator=(src);
-
-    m_id = src.m_id;
-
-    m_full_file_name = src.m_full_file_name;
-    m_relative_file_name = src.m_relative_file_name;
-
-    m_file_size  = src.m_file_size;
-    m_file_time  = src.m_file_time;
-    m_file_crc   = src.m_file_crc;
-    m_buffer_crc = src.m_buffer_crc;
-    m_buffer     = src.m_buffer;
-    m_bCompressedBuffer = src.m_bCompressedBuffer;   //fixed 29 12 2011
-  }
-  return *this;
-}
-
-ON_EmbeddedFile::~ON_EmbeddedFile()
-{
-  Destroy();
-}
-
-void ON_EmbeddedFile::EmergencyDestroy()
-{
-  ON_Object::EmergencyDestroy();
-  m_buffer.EmergencyDestroy();
-  m_full_file_name.EmergencyDestroy();
-  m_relative_file_name.EmergencyDestroy();
-  Destroy(); // zero all members
-}
-
-void ON_EmbeddedFile::Destroy()
-{
-  ON_Object::PurgeUserData();
-  DestroyBuffer();
-  m_id = ON_nil_uuid;
-  m_full_file_name.Destroy();
-  m_relative_file_name.Destroy();
-  m_file_size  = 0;
-  m_file_time  = 0;
-  m_file_crc   = 0;
-  m_buffer_crc = 0;
-}
-
-void ON_EmbeddedFile::DestroyBuffer()
-{
-  m_buffer.Destroy();
-  m_buffer_crc = 0;
-  m_bCompressedBuffer = false;
-}
-
-static bool CompressedStreamHandler( void* context, ON__UINT32 size, const void* buffer )
-{
-  return (size == ((ON_Buffer*)context)->Write(size,buffer) );
-}
-
-bool ON_EmbeddedFile::Create( 
-  FILE* fp,
-  bool bCompress
-  )
-{
-  Destroy();
-
-  if ( 0 == fp )
-    return false;
-  if ( !ON_FileStream::SeekFromStart(fp,0) )
-    return false;
-
-  ON__UINT64 file_size = 0;
-  ON__UINT64 file_create_time = 0;
-  ON__UINT64 file_last_modified_time = 0;
-  if ( !ON_FileStream::GetFileInformation(fp,&file_size,&file_create_time,&file_last_modified_time) )
-    return false;
-
-  // copy file into buffer
-  // ~ON_Workspace will free the memory
-  ON_Workspace ws;
-  const std::size_t buffer_capacity = 4090;
-  ON__UINT64 buffer_size;
-  void* buffer = (void*)ws.GetMemory(buffer_capacity);
-  if ( 0 == buffer )
-    return false;
-
-  ON_CompressStream compress;
-  if ( bCompress )
-  {
-    m_bCompressedBuffer = true;
-    if ( !compress.SetCallback(CompressedStreamHandler,&m_buffer) )
-      return false;
-    if ( !compress.Begin() )
-      return false;
-  }
-
-  for(;;)
-  {
-    buffer_size = ON_FileStream::Read(fp,buffer_capacity,buffer);
-    if ( buffer_size <= 0 )
-      break;
-    m_file_size += buffer_size;
-    m_file_crc = ON_CRC32(m_file_crc,(std::size_t)buffer_size,buffer);
-    if ( bCompress )
-    {
-      if ( !compress.In(buffer_size,buffer) )
-      {
-        Destroy();
-        return false;
-      }
-    }
-    else
-    {
-      if ( !m_buffer.Write(buffer_size,buffer) )
-      {
-        Destroy();
-        return false;
-      }
-    }
-  }
-
-  if ( bCompress )
-  {
-    if ( !compress.End() )
-    {
-        Destroy();
-      return false;
-    }
-    if (    compress.InSize() != m_file_size
-         || compress.InCRC() != m_file_crc
-         || compress.OutSize() != m_buffer.Size()
-       )
-    {
-      Destroy();
-      return false;
-    }
-  }
-
-  m_buffer_crc = m_buffer.CRC32(0);
-
-  if ( bCompress )
-  {
-    if ( compress.OutCRC() != m_buffer_crc )
-    {
-      Destroy();
-      return false;
-    }
-  }
-
-  m_buffer.SeekFromStart(0);
-
-  return true;
-}
-
-bool ON_EmbeddedFile::Extract( 
-  const wchar_t* destination_filename
-  ) const
-{
-  if ( 0 == destination_filename || 0 == destination_filename[0] )
-    return false;
-  if ( m_buffer.Size() <= 0 )
-    return false;
-  FILE* fp = ON_FileStream::Open(destination_filename,L"wb");
-  if ( 0 == fp )
-    return false;
-  bool rc = Extract(fp);
-  ON_FileStream::Close(fp);
-  return rc;
-}
-
-static bool UncompressedToFileHandler( void* context, ON__UINT32 size, const void* buffer )
-{
-  return ( size == ON_FileStream::Write((FILE*)context,size,buffer) );
-}
-
-bool ON_EmbeddedFile::Extract( 
-  FILE* fp
-  ) const
-{
-  ON_Workspace ws;
-
-  if ( 0 == fp )
-    return false;
-  if ( m_buffer.Size() <= 0 )
-    return false;
-
-  ON_UncompressStream uncompress;
-
-  if ( m_bCompressedBuffer )
-  {
-    if ( !uncompress.SetCallback(UncompressedToFileHandler,fp) )
-      return false;
-    if ( !uncompress.Begin() )
-      return false;
-  }
-
-  const std::size_t buffer_capacity = 4088;
-  void* buffer = ws.GetMemory(buffer_capacity);
-  ON__UINT64 file_size = 0;
-  ON__UINT32 file_crc = 0;
-  if ( !const_cast<ON_Buffer*>(&m_buffer)->SeekFromStart(0) )
-    return false;
-  for(;;)
-  {
-    ON__UINT64 buffer_size = const_cast<ON_Buffer*>(&m_buffer)->Read(buffer_capacity,buffer);
-    if ( buffer_size <= 0 )
-      break;
-    if ( m_bCompressedBuffer )
-    {
-      if ( !uncompress.In(buffer_size,buffer) )
-        return false;
-    }
-    else
-    {
-      file_size += buffer_size;
-      file_crc = ON_CRC32(file_crc,(std::size_t)buffer_size,buffer);
-      if ( !ON_FileStream::Write(fp,(std::size_t)buffer_size,buffer) )
-        return false;
-    }
-  }
-
-  if ( m_bCompressedBuffer )
-  {
-    if ( !uncompress.End() )
-      return false;
-
-    file_size = uncompress.OutSize();
-    file_crc = uncompress.OutCRC();
-  }
-
-  if ( file_size != m_file_size || file_crc != m_file_crc )
-    return false;
-
-  return true;
-}
-
-
-struct BufferAndSize
-{
-  ON__UINT64 buffer_size;
-  void* buffer;
-};
-
-static bool UncompressedToBufferHandler( void* context, ON__UINT32 size, const void* buffer )
-{
-  struct BufferAndSize* bs = (struct BufferAndSize*)context;
-  std::size_t sz = (bs->buffer_size < size) ? (std::size_t)bs->buffer_size  : (std::size_t)size;
-  if ( sz > 0 )
-  {
-    memcpy(bs->buffer,buffer,sz);
-    bs->buffer_size -= sz;
-    bs->buffer = ((unsigned char*)bs->buffer) + sz;
-  }
-  return ( sz == size );
-}
-
-bool ON_EmbeddedFile::Extract( 
-  void* out_buffer
-  ) const
-{
-  ON_Workspace ws;
-
-  if ( m_buffer.Size() <= 0 )
-    return false;
-  if ( FileSize() <= 0 )
-    return false;
-  if ( 0 == out_buffer )
-    return false;
-
-  BufferAndSize bs;
-  bs.buffer = out_buffer;
-  bs.buffer_size = FileSize();
-
-  ON_UncompressStream uncompress;
-
-  if ( m_bCompressedBuffer )
-  {
-    if ( !uncompress.SetCallback(UncompressedToBufferHandler,&bs) )
-      return false;
-    if ( !uncompress.Begin() )
-      return false;
-  }
-
-  const std::size_t buffer_capacity = 4088;
-  void* buffer = ws.GetMemory(buffer_capacity);
-  ON__UINT64 file_size = 0;
-  ON__UINT32 file_crc = 0;
-  if ( !const_cast<ON_Buffer*>(&m_buffer)->SeekFromStart(0) )
-    return false;
-  for(;;)
-  {
-    ON__UINT64 buffer_size = const_cast<ON_Buffer*>(&m_buffer)->Read(buffer_capacity,buffer);
-    if ( buffer_size <= 0 )
-      break;
-    if ( m_bCompressedBuffer )
-    {
-      if ( !uncompress.In(buffer_size,buffer) )
-        return false;
-    }
-    else
-    {
-      file_size += buffer_size;
-      file_crc = ON_CRC32(file_crc,(std::size_t)buffer_size,buffer);
-      std::size_t sz = (bs.buffer_size < buffer_size) ? (std::size_t)bs.buffer_size  : (std::size_t)buffer_size;
-      if ( sz > 0 )
-      {
-        memcpy(bs.buffer,buffer,sz);
-        bs.buffer_size -= sz;
-        bs.buffer = ((unsigned char*)bs.buffer) + sz;
-      }
-      if ( sz != buffer_size )
-        return false;
-    }
-  }
-
-  if ( m_bCompressedBuffer )
-  {
-    if ( !uncompress.End() )
-      return false;
-
-    file_size = uncompress.OutSize();
-    file_crc = uncompress.OutCRC();
-  }
-
-  if ( file_size != m_file_size || file_crc != m_file_crc )
-    return false;
-
-  return true;
-}
-
-const wchar_t* ON_EmbeddedFile::FullFileName() const
-{
-  return m_full_file_name;
-}
-
-const wchar_t* ON_EmbeddedFile::RelativeFileName() const
-{
-  return m_relative_file_name;
-}
-
-ON_UUID ON_EmbeddedFile::Id() const
-{
-  return m_id;
-}
-
-void ON_EmbeddedFile::SetFullFileName( const wchar_t* full_file_name )
-{
-  m_full_file_name = full_file_name;
-}
-
-void ON_EmbeddedFile::SetRelativeFileName( const wchar_t* relative_file_name )
-{
-  m_relative_file_name = relative_file_name;
-}
-
-void ON_EmbeddedFile::SetId( ON_UUID id )
-{
-  m_id = id;
-}
-
-ON__UINT64 ON_EmbeddedFile::FileSize() const
-{
-  return m_file_size;
-}
-
-ON__UINT64 ON_EmbeddedFile::FileLastModifiedTime() const
-{
-  return m_file_time;
-}
-
-ON__UINT32 ON_EmbeddedFile::FileCRC() const
-{
-  return m_file_crc;
-}
-
-static bool ON_EmbeddedFileIsNotValid()
-{
-  return ON_IsNotValid();
-}
-  
-ON_BOOL32 ON_EmbeddedFile::IsValid( ON_TextLog* text_log ) const
-{
-  if ( !m_buffer.IsValid(text_log) )
-  {
-    if ( 0 != text_log )
-      text_log->Print("m_buffer is not valid.");
-    return ON_EmbeddedFileIsNotValid();
-  }
-
-  if ( m_buffer_crc != m_buffer.CRC32(0) )
-  {
-    if ( 0 != text_log )
-      text_log->Print("m_buffer_crc != m_buffer.CRC32(0)");
-    return ON_EmbeddedFileIsNotValid();
-  }
-
-  if ( !m_bCompressedBuffer )
-  {
-    if ( m_file_size != m_buffer.Size() )
-    {
-      if ( 0 != text_log )
-        text_log->Print("Uncompressed buffer - m_file_size != m_buffer.Size(0)");
-      return ON_EmbeddedFileIsNotValid();
-    }
-    if ( m_file_crc != m_buffer_crc )
-    {
-      if ( 0 != text_log )
-        text_log->Print("Uncompressed buffer - m_file_size != m_buffer.Size(0)");
-      return ON_EmbeddedFileIsNotValid();
-    }
-  }
-
-  return true;
-}
-
-ON_BOOL32 ON_EmbeddedFile::Write( ON_BinaryArchive& archive ) const
-{
-  if ( !archive.BeginWrite3dmChunk(TCODE_ANONYMOUS_CHUNK,1,0) )
-    return false;
-
-  bool rc = false;
-  for(;;)
-  {
-    // put header information in a sub-chunk
-    if ( !archive.BeginWrite3dmChunk(TCODE_ANONYMOUS_CHUNK,1,0) )
-      break;
-    bool header_rc = false;
-    for(;;)
-    {
-      if ( !archive.WriteUuid(m_id) )
-        break;
-      if ( !archive.WriteString(m_full_file_name) )
-        break;
-      if ( !archive.WriteString(m_relative_file_name) ) 
-        break;
-      if ( !archive.WriteBigInt(m_file_size) )
-        break;
-      if ( !archive.WriteBigInt(m_file_time) )
-        break;
-      if ( !archive.WriteInt(m_file_crc) )
-        break;
-      if ( !archive.WriteInt(m_buffer_crc) )
-        break;
-      if ( !archive.WriteChar(m_bCompressedBuffer) )
-        break;
-      header_rc = true;
-      break;
-    }
-    if ( !archive.EndWrite3dmChunk() )
-      break;
-    if ( !header_rc )
-      break;
-
-    // m_buffer.WriteToBinaryArchive() creates its own chunk
-    // with typecode = TCODE_OPENNURBS_BUFFER
-    if ( !m_buffer.WriteToBinaryArchive(archive) )
-      break;
-
-    rc = true;
-    break;
-  }
-
-  if ( !archive.EndWrite3dmChunk() )
-    rc = false;
-
-  return rc;
-}
-
-ON_BOOL32 ON_EmbeddedFile::Read( ON_BinaryArchive& archive )
-{
-  Destroy();
-
-  int major_version = 0;
-  int minor_version = 0;
-  if ( !archive.BeginRead3dmChunk(TCODE_ANONYMOUS_CHUNK,&major_version,&minor_version) )
-    return false;
-
-  bool rc = false;
-  for(;;)
-  {
-    if ( 1 != major_version )
-      break;
-    // put header information in a sub-chunk
-    int header_major_version = 0;
-    int header_minor_version = 0;
-    if ( !archive.BeginRead3dmChunk(TCODE_ANONYMOUS_CHUNK,&header_major_version,&header_minor_version) )
-      break;
-    bool header_rc = false;
-    for(;;)
-    {
-      if ( 1 != header_major_version )
-        break;
-      if ( !archive.ReadUuid(m_id) )
-        break;
-      if ( !archive.ReadString(m_full_file_name) )
-        break;
-      if ( !archive.ReadString(m_relative_file_name) ) 
-        break;
-
-      if ( !archive.ReadBigInt(&m_file_size) )
-        break;
-      if ( !archive.ReadBigInt(&m_file_time) )
-        break;
-      if ( !archive.ReadInt(&m_file_crc) )
-        break;
-      if ( !archive.ReadInt(&m_buffer_crc) )
-        break;
-      if ( !archive.ReadChar(&m_bCompressedBuffer) )
-        break;
-      header_rc = true;
-      break;
-    }
-    if ( !archive.EndRead3dmChunk() )
-      break;
-    if ( !header_rc )
-      break;
-
-    // m_buffer.ReadToBinaryArchive() creates its own chunk
-    // with typecode = TCODE_OPENNURBS_BUFFER
-    if ( !m_buffer.ReadFromBinaryArchive(archive) )
-      break;
-
-    rc = true;
-    break;
-  }
-
-  if ( !archive.EndRead3dmChunk() )
-    rc = false;
-
-  return rc;
-}
 
 

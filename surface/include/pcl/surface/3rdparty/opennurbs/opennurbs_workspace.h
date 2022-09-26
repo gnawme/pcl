@@ -44,7 +44,6 @@ public:
   */
   ~ON_Workspace();
 
-
   /*
   Description:
     The destructor frees memory that was allocated by
@@ -63,7 +62,7 @@ public:
     before returning.
   Parameters:
     sz - [in] (>0) size of memory block in bytes. 
-              If sz <= 0, then NULL is returned.
+              If sz <= 0, then nullptr is returned.
   Returns:
     A pointer to the memory block.
   Remarks.
@@ -81,7 +80,7 @@ public:
     ON_Workspace::GetPointMemory
     ON_Workspace::GetVectorMemory
   */
-  void* GetMemory( std::size_t sz );
+  void* GetMemory( size_t sz );
 
   /*
   Description:
@@ -91,7 +90,7 @@ public:
     having to worry about cleaning up before returning.
   Parameters:
     count - [in] (>0) number of integers in memory block.
-              If count <= 0, then NULL is returned.
+              If count <= 0, then nullptr is returned.
   Returns:
     A pointer to the array of integers.
   Remarks.
@@ -104,7 +103,7 @@ public:
     ON_Workspace::KeepMemory
     ON_Workspace::GrowIntMemory
   */
-  int* GetIntMemory( std::size_t count );
+  int* GetIntMemory( size_t count );
 
   /*
   Description:
@@ -121,7 +120,7 @@ public:
   See Also:
     ON_Workspace::KeepMemory
   */
-  int** GetIntMemory( std::size_t row_count, std::size_t col_count );
+  int** GetIntMemory( size_t row_count, size_t col_count );
 
   /*
   Description:
@@ -131,7 +130,7 @@ public:
     having to worry about cleaning up before returning.
   Parameters:
     count - [in] (>0) number of doubles in memory block.
-              If count <= 0, then NULL is returned.
+              If count <= 0, then nullptr is returned.
   Returns:
     A pointer to the array of doubles.
   Remarks.
@@ -144,7 +143,7 @@ public:
     ON_Workspace::KeepMemory
     ON_Workspace::GrowIntMemory
   */
-  double* GetDoubleMemory( std::size_t count );
+  double* GetDoubleMemory( size_t count );
 
   /*
   Description:
@@ -161,7 +160,7 @@ public:
   See Also:
     ON_Workspace::KeepMemory
   */
-  double** GetDoubleMemory( std::size_t row_count, std::size_t col_count );
+  double** GetDoubleMemory( size_t row_count, size_t col_count );
 
   /*
   Description:
@@ -171,7 +170,7 @@ public:
     having to worry about cleaning up before returning.
   Parameters:
     count - [in] (>0) number of points in memory block.
-              If count <= 0, then NULL is returned.
+              If count <= 0, then nullptr is returned.
   Returns:
     A pointer to the memory block.
   Remarks.
@@ -184,7 +183,7 @@ public:
     ON_Workspace::KeepMemory
     ON_Workspace::GrowIntMemory
   */
-  ON_3dPoint* GetPointMemory( std::size_t count );
+  ON_3dPoint* GetPointMemory( size_t count );
 
   /*
   Description:
@@ -194,7 +193,7 @@ public:
     having to worry about cleaning up before returning.
   Parameters:
     count - [in] (>0) number of Vectors in memory block.
-              If count <= 0, then NULL is returned.
+              If count <= 0, then nullptr is returned.
   Returns:
     A pointer to the memory block.
   Remarks.
@@ -207,7 +206,7 @@ public:
     ON_Workspace::KeepMemory
     ON_Workspace::GrowIntMemory
   */
-  ON_3dVector* GetVectorMemory( std::size_t count );
+  ON_3dVector* GetVectorMemory( size_t count );
 
   /*
   Description:
@@ -217,10 +216,10 @@ public:
     ptr - [in] pointer returned by an earlier call to
                GetMemory or GrowMemory.
     sz - [in] (>0) size of memory block in bytes. 
-              If sz <= 0, then NULL is returned.
-              If ptr is not NULL and was not allocated by an 
+              If sz <= 0, then nullptr is returned.
+              If ptr is not nullptr and was not allocated by an 
               earlier call to GetMemory or GrowMemory, then
-              NULL is returned.
+              nullptr is returned.
   Returns:
     A pointer to the memory block.
   Remarks.
@@ -237,7 +236,7 @@ public:
     ON_Workspace::GrowPointMemory
     ON_Workspace::GrowVectorMemory
   */
-  void* GrowMemory( void* ptr, std::size_t sz );
+  void* GrowMemory( void* ptr, size_t sz );
 
   /*
   Description:
@@ -247,9 +246,9 @@ public:
     ptr - [in] pointer returned by an earlier call to
                GetIntMemory or GrowIntMemory.
     count - [in] (>0) number of integers in memory block.
-              If count <= 0, then NULL is returned.
+              If count <= 0, then nullptr is returned.
               If ptr was not allocated by this ON_Workspace
-              class, then NULL is returned.
+              class, then nullptr is returned.
   Returns:
     A pointer to the integer array.
   Remarks.
@@ -262,7 +261,7 @@ public:
     ON_Workspace::GetIntMemory
     ON_Workspace::KeepMemory
   */
-  int* GrowIntMemory( int* ptr, std::size_t count );
+  int* GrowIntMemory( int* ptr, size_t count );
 
   /*
   Description:
@@ -272,9 +271,9 @@ public:
     ptr - [in] pointer returned by an earlier call to
                GetDoubleMemory or GrowDoubleMemory.
     count - [in] (>0) number of doubles in memory block.
-              If count <= 0, then NULL is returned.
+              If count <= 0, then nullptr is returned.
               If ptr was not allocated by this ON_Workspace
-              class, then NULL is returned.
+              class, then nullptr is returned.
   Returns:
     A pointer to the double array.
   Remarks.
@@ -287,7 +286,7 @@ public:
     ON_Workspace::GetDoubleMemory
     ON_Workspace::KeepMemory
   */
-  double* GrowDoubleMemory( double* ptr, std::size_t count );
+  double* GrowDoubleMemory( double* ptr, size_t count );
 
   /*
   Description:
@@ -297,9 +296,9 @@ public:
     ptr - [in] pointer returned by an earlier call to
                GetPointMemory or GrowPointMemory.
     count - [in] (>0) number of points in memory block.
-              If count <= 0, then NULL is returned.
+              If count <= 0, then nullptr is returned.
               If ptr was not allocated by this ON_Workspace
-              class, then NULL is returned.
+              class, then nullptr is returned.
   Returns:
     A pointer to the point array.
   Remarks.
@@ -312,7 +311,7 @@ public:
     ON_Workspace::GetPointMemory
     ON_Workspace::KeepMemory
   */
-  ON_3dPoint* GrowPointMemory( ON_3dPoint* ptr, std::size_t count );
+  ON_3dPoint* GrowPointMemory( ON_3dPoint* ptr, size_t count );
 
   /*
   Description:
@@ -322,9 +321,9 @@ public:
     ptr - [in] pointer returned by an earlier call to
                GetVectorMemory or GrowVectorMemory.
     count - [in] (>0) number of vectors in memory block.
-              If count <= 0, then NULL is returned.
+              If count <= 0, then nullptr is returned.
               If ptr was not allocated by this ON_Workspace
-              class, then NULL is returned.
+              class, then nullptr is returned.
   Returns:
     A pointer to the vector array.
   Remarks.
@@ -337,7 +336,7 @@ public:
     ON_Workspace::GetVectorMemory
     ON_Workspace::KeepMemory
   */
-  ON_3dVector* GrowVectorMemory( ON_3dVector* ptr, std::size_t count );
+  ON_3dVector* GrowVectorMemory( ON_3dVector* ptr, size_t count );
 
   /*
   Description:
@@ -359,7 +358,7 @@ public:
     ON_Workspace::GetMemory
     ON_Workspace::KeepAllMemory
   */
-  ON_BOOL32 KeepMemory( void* ptr );
+  bool KeepMemory( void* ptr );
 
   /*
   Description:
@@ -435,7 +434,7 @@ public:
     ON::OpenFile
     ON::CloseFile
   */
-  int KeepFile(FILE* fileptr);
+  bool KeepFile(FILE* fileptr);
 
 private:
   struct ON_Workspace_FBLK * m_pFileBlk;
@@ -445,8 +444,8 @@ private:
   // There is no implementation of the following to prevent use.
   // ON_Workspaces should never be copied, or you will get
   // multiple attempts to free the same pointer.
-  ON_Workspace( const ON_Workspace& );
-  ON_Workspace& operator=( const ON_Workspace& );
+  ON_Workspace( const ON_Workspace& ) = delete;
+  ON_Workspace& operator=( const ON_Workspace& ) = delete;
 };
 
 

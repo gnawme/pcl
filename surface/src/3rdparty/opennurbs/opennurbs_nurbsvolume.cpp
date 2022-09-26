@@ -15,15 +15,21 @@
 */
 
 #include "pcl/surface/3rdparty/opennurbs/opennurbs.h"
-#include <pcl/pcl_macros.h>
 
+#if !defined(ON_COMPILING_OPENNURBS)
+// This check is included in all opennurbs source .c and .cpp files to insure
+// ON_COMPILING_OPENNURBS is defined when opennurbs source is compiled.
+// When opennurbs source is being compiled, ON_COMPILING_OPENNURBS is defined 
+// and the opennurbs .h files alter what is declared and how it is declared.
+#error ON_COMPILING_OPENNURBS must be defined when compiling opennurbs
+#endif
 
 ON_OBJECT_IMPLEMENT(ON_NurbsCage,ON_Geometry,"06936AFB-3D3C-41ac-BF70-C9319FA480A1");
 
 ON_OBJECT_IMPLEMENT(ON_MorphControl,ON_Geometry,"D379E6D8-7C31-4407-A913-E3B7040D034A");
 
 
-ON_BOOL32 ON_NurbsCage::Read(ON_BinaryArchive& archive)
+bool ON_NurbsCage::Read(ON_BinaryArchive& archive)
 {
   Destroy();
 
@@ -163,7 +169,7 @@ ON_BOOL32 ON_NurbsCage::Read(ON_BinaryArchive& archive)
   return rc;
 }
 
-ON_BOOL32 ON_NurbsCage::Write(ON_BinaryArchive& archive) const
+bool ON_NurbsCage::Write(ON_BinaryArchive& archive) const
 {
   bool rc = archive.BeginWrite3dmChunk(TCODE_ANONYMOUS_CHUNK,1,0);
 
@@ -415,6 +421,7 @@ double ON_NurbsCage::GrevilleAbcissa(
          : ON_UNSET_VALUE;
 }
 
+
 bool ON_NurbsCage::MakeDeformable()
 {
   return true;
@@ -425,7 +432,7 @@ bool ON_NurbsCage::IsDeformable() const
   return true;
 }
 
-bool ON_NurbsCage::GetTightBoundingBox( ON_BoundingBox& tight_bbox,int bGrowBox,const ON_Xform* xform) const
+bool ON_NurbsCage::GetTightBoundingBox( ON_BoundingBox& tight_bbox,bool bGrowBox,const ON_Xform* xform) const
 {
   if ( bGrowBox && !tight_bbox.IsValid() )
   {
@@ -459,7 +466,7 @@ bool ON_NurbsCage::GetTightBoundingBox( ON_BoundingBox& tight_bbox,int bGrowBox,
   }
   else
   {
-    if ( GetBoundingBox(tight_bbox,bGrowBox) )
+    if ( GetBoundingBox(tight_bbox,bGrowBox?true:false) )
       bGrowBox = true;
   }
 
@@ -525,7 +532,7 @@ ON__UINT32 ON_NurbsCage::DataCRC(ON__UINT32 current_remainder) const
       && m_cv_stride[0] > 0 && m_cv_stride[1] > 0 && m_cv_stride[2] > 0
       && m_cv )
   {
-    std::size_t sizeof_cv = CVSize()*sizeof(m_cv[0]);
+    size_t sizeof_cv = CVSize()*sizeof(m_cv[0]);
     const double* cv = m_cv;
     int i, j, k;
     for ( i = 0; i < m_cv_count[0]; i++ )
@@ -533,7 +540,7 @@ ON__UINT32 ON_NurbsCage::DataCRC(ON__UINT32 current_remainder) const
       for ( j = 0; j < m_cv_count[1]; j++ )
       {
         cv = CV(i,j,0);
-        for (k = 0; i < m_cv_count[2]; k++ )
+        for (k = 0; k < m_cv_count[2]; k++ )
         {
           current_remainder = ON_CRC32(current_remainder,sizeof_cv,cv);
           cv += m_cv_stride[2];
@@ -621,9 +628,9 @@ ON_NurbsCage& ON_NurbsCage::operator=(const ON_NurbsCage& src)
   return *this;
 }
 
-ON_BOOL32 ON_NurbsCage::IsValid( 
-          ON_TextLog* //text_log 
-          ) const
+bool ON_NurbsCage::IsValid( 
+  ON_TextLog* //text_log 
+) const
 {
   if ( 0 == m_cv )
     return false;
@@ -712,13 +719,13 @@ void ON_NurbsCage::Dump( ON_TextLog& dump ) const
                (m_is_rat) ? "rational" : "non-rational" );
   if ( !m_cv ) 
   {
-    dump.Print("  NULL cv array\n");
+    dump.Print("  nullptr cv array\n");
   }
   else 
   {
     int i,j;
-    char sPreamble[128]; 
-    memset(sPreamble,0,sizeof(sPreamble));
+    char sPreamble[128] = { 0 };
+    const size_t sPremable_capacity = sizeof(sPreamble) / sizeof(sPreamble[0]);
     for ( i = 0; i < m_order[0]; i++ )
     {
       for ( j = 0; j < m_order[1]; j++ )
@@ -726,7 +733,7 @@ void ON_NurbsCage::Dump( ON_TextLog& dump ) const
         if ( i > 0 || j > 0)
           dump.Print("\n");
         sPreamble[0] = 0;
-        sprintf(sPreamble,"  CV[%2d][%2d]",i,j);
+        ON_String::FormatIntoBuffer(sPreamble, sPremable_capacity,"  CV[%2d][%2d]", i, j);
         dump.PrintPointList( m_dim, m_is_rat, 
                           m_cv_count[2], m_cv_stride[2],
                           CV(i,j,0), 
@@ -982,10 +989,10 @@ void ON_NurbsCage::EmergencyDestroy()
 }
 
 
-ON_BOOL32 ON_NurbsCage::GetBBox( // returns true if successful
+bool ON_NurbsCage::GetBBox( // returns true if successful
        double* boxmin,    // minimum
        double* boxmax,    // maximum
-       ON_BOOL32 bGrowBox  // true means grow box
+       bool bGrowBox  // true means grow box
        ) const
 {
   int i, j;
@@ -1010,7 +1017,7 @@ ON_BOOL32 ON_NurbsCage::GetBBox( // returns true if successful
   return rc;
 }
 
-ON_BOOL32 ON_NurbsCage::Transform( const ON_Xform& xform )
+bool ON_NurbsCage::Transform( const ON_Xform& xform )
 {
   int i,j;
   bool rc = (m_cv_count[0] > 0 && m_cv_count[1] > 0 && m_cv_count[2]) ? true : false;
@@ -1042,8 +1049,8 @@ ON_Interval ON_NurbsCage::Domain(
       ) const
 {
   ON_Interval d;
-  if ( dir < 0 || dir > 2 || !ON_GetKnotVectorDomain( m_order[dir], m_cv_count[dir], m_knot[dir], &d.m_t[0], &d.m_t[1] ) )
-    d.Destroy();
+  if ( dir < 0 || dir > 2 || !ON_GetKnotVectorDomain( m_order[dir], m_cv_count[dir], m_knot[dir], &d.m_t[0], &d.m_t[1] ) || !d.IsIncreasing() )
+    d = ON_Interval::EmptyInterval;
   return d;
 }
 
@@ -1053,7 +1060,7 @@ ON_Interval ON_NurbsCage::Domain(
 
 bool ON_EvaluateNurbsCageSpan(
         int dim,
-        int is_rat,
+        bool is_rat,
         int order0, int order1, int order2,
         const double* knot0,
         const double* knot1,
@@ -1354,8 +1361,8 @@ ON_NurbsSurface* ON_NurbsCage::IsoSurface(
   nurbs_curve.m_cv_count = nurbs_curve.m_order;
   nurbs_curve.ReserveCVCapacity(nurbs_curve.m_dim*nurbs_curve.m_cv_count);
   nurbs_curve.m_cv_stride = nurbs_curve.m_dim;
-  nurbs_curve.m_knot = m_knot[dir] + span_index;
-  nurbs_curve.m_knot_capacity = 0;
+  // nurbs_curve.m_knot[] shares memory with m_knot[dir] + span_index. nurbs_curve destructor does not free nurbs_curve.m_knot[]
+  nurbs_curve.ManageKnotForExperts(0, m_knot[dir] + span_index);
 
   int ii,jj,kk;
   /*
@@ -1516,7 +1523,7 @@ double* ON_NurbsCage::CV( int i, int j, int k ) const
 #if defined(ON_DEBUG)
   if ( 0 == m_cv )
   {
-    ON_ERROR("ON_NurbsCage::CV - NULL m_cv");
+    ON_ERROR("ON_NurbsCage::CV - nullptr m_cv");
     return 0;
   }
   if ( i < 0 || i >= m_cv_count[0] || j< 0 || j >= m_cv_count[1] || k < 0 || k >= m_cv_count[2])
@@ -1684,7 +1691,7 @@ bool ON_NurbsCage::GetCV( int i, int j, int k, ON::point_style style, double* Po
   switch(style) {
   case ON::euclidean_rational:
     Point[dim] = w;
-    PCL_FALLTHROUGH
+    // no break here
   case ON::not_rational:
     if ( w == 0.0 )
       return false;
@@ -1988,7 +1995,7 @@ bool ON_NurbsCage::IsSingular(		 // true if surface side is collapsed to a point
 bool ON_GetCageXform( const ON_NurbsCage& cage, ON_Xform& cage_xform )
 {
   bool rc = false;
-  cage_xform.Identity();
+  cage_xform = ON_Xform::IdentityTransformation;
   if ( cage.IsValid() )
   {
     ON_3dPoint P000, P100, P010, P001;
@@ -2020,14 +2027,12 @@ bool ON_GetCageXform( const ON_NurbsCage& cage, ON_Xform& cage_xform )
     ON_Xform x1;
     x1.Rotation( 
       P000, X0, Y0, Z0, 
-      ON_origin, ON_xaxis, ON_yaxis, ON_zaxis 
+      ON_3dPoint::Origin, ON_3dVector::XAxis, ON_3dVector::YAxis, ON_3dVector::ZAxis 
       );
 
-    ON_Xform x2;
-    x2.Scale( d0.Length()/dx0, d1.Length()/dy0, d2.Length()/dz0 );
+    const ON_Xform x2(ON_Xform::DiagonalTransformation( d0.Length()/dx0, d1.Length()/dy0, d2.Length()/dz0 ));
       
-    ON_Xform x3;
-    x3.Translation( d0[0],d1[0],d2[0]);
+    const ON_Xform x3(ON_Xform::TranslationTransformation( d0[0],d1[0],d2[0]));
 
 
     cage_xform = x3*(x2*x1);
@@ -2046,6 +2051,7 @@ ON_CageMorph::~ON_CageMorph()
   m_control = 0;
 }
 
+
 bool ON_MorphControl::IsIdentity( const ON_BoundingBox& bbox ) const
 {
   int i, count = m_localizers.Count();
@@ -2057,14 +2063,15 @@ bool ON_MorphControl::IsIdentity( const ON_BoundingBox& bbox ) const
   return rc;
 }
 
+
+
 bool ON_CageMorph::IsIdentity( const ON_BoundingBox& bbox ) const
 {
   return m_control ? m_control->IsIdentity(bbox) : true;
 }
 
 ON_MorphControl::ON_MorphControl() 
-                : m_varient(0),
-                  m_nurbs_cage0(1.0)
+                : m_varient(0)
 {
   m_sporh_tolerance          = 0.0;
   m_sporh_bQuickPreview      = false;
@@ -2079,14 +2086,14 @@ ON_MorphControl::~ON_MorphControl()
 void ON_MorphControl::Destroy()
 {
   m_varient = 0;
-  m_nurbs_cage0.Identity();
+  m_nurbs_cage0 = ON_Xform::IdentityTransformation;
   m_nurbs_curve0.Destroy();
   m_nurbs_curve.Destroy();
-  m_nurbs_curve_domain.Destroy();
+  m_nurbs_curve_domain = ON_Interval::EmptyInterval;
   m_nurbs_surface0.Destroy();
   m_nurbs_surface.Destroy();
-  m_nurbs_surface_domain[0].Destroy();
-  m_nurbs_surface_domain[1].Destroy();
+  m_nurbs_surface_domain[0] = ON_Interval::EmptyInterval;
+  m_nurbs_surface_domain[1] = ON_Interval::EmptyInterval;
   m_nurbs_cage.Destroy();
   m_captive_id.Empty();
   m_localizers.Destroy();
@@ -2106,9 +2113,9 @@ void ON_MorphControl::MemoryRelocate()
   ON_Geometry::MemoryRelocate();
 }
 
-ON_BOOL32 ON_MorphControl::IsValid( ON_TextLog* text_log ) const
+bool ON_MorphControl::IsValid( ON_TextLog* text_log ) const
 {
-  ON_BOOL32 rc = false;
+  bool rc = false;
   switch(m_varient)
   {
   case 1:
@@ -2208,13 +2215,13 @@ int ON_MorphControl::Dimension() const
   return dim;
 }
 
-ON_BOOL32 ON_MorphControl::GetBBox(
+bool ON_MorphControl::GetBBox(
         double* boxmin,
         double* boxmax,
-        int bGrowBox
+        bool bGrowBox
         ) const
 {
-  ON_BOOL32 rc = false;
+  bool rc = false;
   switch(m_varient)
   {
   case 1:
@@ -2232,8 +2239,8 @@ ON_BOOL32 ON_MorphControl::GetBBox(
 
 bool ON_MorphControl::GetTightBoundingBox( 
 		ON_BoundingBox& tight_bbox, 
-    int bGrowBox,
-		const ON_Xform*
+    bool bGrowBox,
+		const ON_Xform* xform
     ) const
 {
   bool rc = false;
@@ -2256,11 +2263,11 @@ void ON_MorphControl::ClearBoundingBox()
 {
 }
 
-ON_BOOL32 ON_MorphControl::Transform( 
+bool ON_MorphControl::Transform( 
         const ON_Xform& xform
         )
 {
-  ON_BOOL32 rc = false;
+  bool rc = false;
 
   switch(m_varient)
   {
@@ -2280,9 +2287,10 @@ ON_BOOL32 ON_MorphControl::Transform(
   return rc;
 }
 
-ON_BOOL32 ON_MorphControl::HasBrepForm() const
+
+bool ON_MorphControl::HasBrepForm() const
 {
-  ON_BOOL32 rc = false;
+  bool rc = false;
 
   switch(m_varient)
   {
@@ -2526,7 +2534,7 @@ bool ON_MorphControl::GetCageMorph(ON_CageMorph& cage_morph) const
   return true;
 }
 
-ON_BOOL32 ON_MorphControl::Read( ON_BinaryArchive& archive )
+bool ON_MorphControl::Read( ON_BinaryArchive& archive )
 {
   Destroy();
   int major_version = 0;
@@ -2660,7 +2668,7 @@ ON_BOOL32 ON_MorphControl::Read( ON_BinaryArchive& archive )
   return rc;
 }
 
-ON_BOOL32 ON_MorphControl::Write( ON_BinaryArchive& archive ) const
+bool ON_MorphControl::Write( ON_BinaryArchive& archive ) const
 {
   bool rc = archive.BeginWrite3dmChunk(TCODE_ANONYMOUS_CHUNK,2,1);
   if (!rc)
@@ -2792,7 +2800,7 @@ bool ON_MorphControl::AddControlLocalizer(
         for ( i = 0; i < 3; i++ )
         {
           P = C;
-          N.Zero();
+          N = ON_3dVector::ZeroVector;
 
           N[i] = -det;
           P[i] = d[i][0];
@@ -2872,7 +2880,7 @@ bool ON_MorphControl::AddBoxLocalizer(
     for ( i = 0; i < 3; i++ )
     {
       P = C;
-      N.Zero();
+      N = ON_3dVector::ZeroVector;
       ON_Plane& plane0 = planes.AppendNew();
       P[i] = bbox.m_min[i];
       N[i] = -1.0;

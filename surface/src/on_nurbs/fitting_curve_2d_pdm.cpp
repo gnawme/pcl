@@ -299,7 +299,7 @@ FittingCurve2dPDM::removeCPsOnLine (const ON_NurbsCurve &nurbs, double min_curve
   ON_NurbsCurve nurbs_opt = ON_NurbsCurve (2, false, order, int (cps.size ()) + 2 * cp_red);
   nurbs_opt.MakePeriodicUniformKnotVector (1.0 / double (cps.size ()));
   nurbs_opt.m_knot[cp_red] = 0.0;
-  nurbs_opt.m_knot[nurbs_opt.m_knot_capacity - cp_red - 1] = 1.0;
+  nurbs_opt.m_knot[nurbs_opt.KnotCapacity() - cp_red - 1] = 1.0;
 
   for (std::size_t j = 0; j < cps.size (); j++)
     nurbs_opt.SetCV (j + cp_red, cps[j]);
@@ -490,18 +490,18 @@ FittingCurve2dPDM::getElementVector (const ON_NurbsCurve &nurbs)
   std::vector<double> result;
 
   int idx_min = 0;
-  int idx_max = nurbs.m_knot_capacity - 1;
+  int idx_max = nurbs.KnotCapacity() - 1;
   if (nurbs.IsClosed ())
   {
     idx_min = nurbs.m_order - 2;
-    idx_max = nurbs.m_knot_capacity - nurbs.m_order + 1;
+    idx_max = nurbs.KnotCapacity() - nurbs.m_order + 1;
   }
 
   const double* knotsU = nurbs.Knot ();
 
   result.push_back (knotsU[idx_min]);
 
-  //for(int E=(m_nurbs.m_order[0]-2); E<(m_nurbs.m_knot_capacity[0]-m_nurbs.m_order[0]+2); E++) {
+  //for(int E=(m_nurbs.m_order[0]-2); E<(m_nurbs.KnotCapacity()[0]-m_nurbs.m_order[0]+2); E++) {
   for (int E = idx_min + 1; E <= idx_max; E++)
   {
 

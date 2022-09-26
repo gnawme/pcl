@@ -490,7 +490,7 @@ Triangulation::convertCurve2PointCloud (const ON_NurbsCurve &nurbs, pcl::PointCl
                                         unsigned resolution)
 {
   // copy knots
-  if (nurbs.m_knot_capacity <= 1)
+  if (nurbs.KnotCapacity() <= 1)
   {
     printf ("[Triangulation::convertCurve2PointCloud] Warning: ON knot vector empty.\n");
     return;
@@ -535,7 +535,7 @@ Triangulation::convertCurve2PointCloud (const ON_NurbsCurve &curve, const ON_Nur
                                         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, unsigned resolution)
 {
   // copy knots
-  if (curve.m_knot_capacity <= 1)
+  if (curve.KnotCapacity() <= 1)
   {
     printf ("[Triangulation::convertCurve2PointCloud] Warning: ON knot vector empty.\n");
     return;

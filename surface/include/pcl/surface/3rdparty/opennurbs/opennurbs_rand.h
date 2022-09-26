@@ -112,12 +112,25 @@ public:
   ON_RandomNumberGenerator();
 
   /*
+  Returns:
+    A upredictable seed value for a random number generator.
+    This function is much slower than ON_RandomNumberGenerator::RandomNumber().
+  */
+  static ON__UINT32 RandomSeed();
+
+  /*
   Description:
     Seed the random number generator.
   Parameters:
     s - [in]
   */
   void Seed( ON__UINT32 s );
+
+  /*
+  Description:
+    Seed the random number generator in a way that cannot be reproduced.
+  */
+  void Seed();
 
   /*
   Returns:
@@ -137,6 +150,30 @@ public:
   */
   double RandomDouble(double t0, double t1);
 
+  double RandomDouble(const class ON_Interval& range);
+
+  /*
+  Parameters:
+    i0 - [in]
+    i1 - [in]
+  Returns:
+    A signed integer in the interval [min(i0,i1), max(i0,i1)], inclusive
+  Example
+    RandomSignedInteger(-2,3) will return -2, -1, 0, 1, 2, or 3.
+  */
+  int RandomSignedInteger(int i0, int i1);
+
+  /*
+  Parameters:
+    i0 - [in]
+    i1 - [in]
+  Returns:
+    An unsigned integer in the interval [min(i0,i1), max(i0,i1)], inclusive
+  Example
+    RandomUnsignedInteger(3,7) will return 3, 4, 5, 6, or 7.
+  */
+  unsigned int RandomUnsignedInteger(unsigned int i0, unsigned int i1);
+
   /*
   Description:
     Perform a random permuation on an array.
@@ -148,7 +185,7 @@ public:
     sizeof_element
       size of an element in bytes.
   */
-  void RandomPermutation(void* base, std::size_t nel, std::size_t sizeof_element );
+  void RandomPermutation(void* base, size_t nel, size_t sizeof_element );
 
 private:
   struct ON_RANDOM_NUMBER_CONTEXT m_rand_context;

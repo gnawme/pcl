@@ -1,5 +1,13 @@
 #include "pcl/surface/3rdparty/opennurbs/opennurbs.h"
 
+#if !defined(ON_COMPILING_OPENNURBS)
+// This check is included in all opennurbs source .c and .cpp files to insure
+// ON_COMPILING_OPENNURBS is defined when opennurbs source is compiled.
+// When opennurbs source is being compiled, ON_COMPILING_OPENNURBS is defined 
+// and the opennurbs .h files alter what is declared and how it is declared.
+#error ON_COMPILING_OPENNURBS must be defined when compiling opennurbs
+#endif
+
 ON_Box::ON_Box()
 {}
 
@@ -14,9 +22,9 @@ ON_Box::~ON_Box()
 void ON_Box::Destroy()
 {
   plane = ON_xy_plane;
-  dx.Destroy();
-  dy.Destroy();
-  dz.Destroy();
+  dx = ON_Interval::EmptyInterval;
+  dy = ON_Interval::EmptyInterval;
+  dz = ON_Interval::EmptyInterval;
 }
 
 bool ON_Box::IsValid() const
@@ -69,7 +77,7 @@ int ON_Box::IsDegenerate( double tolerance ) const
 
 ON_3dPoint ON_Box::Center() const
 {
-  return plane.PointAt(dz.Mid(),dy.Mid(),dz.Mid());
+  return plane.PointAt(dx.Mid(),dy.Mid(),dz.Mid());
 }
 
 bool ON_Box::GetCorners( ON_3dPoint* corners ) const
