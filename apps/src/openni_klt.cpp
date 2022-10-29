@@ -43,8 +43,6 @@
 #include <pcl/tracking/pyramidal_klt.h>
 #include <pcl/visualization/image_viewer.h>
 
-#include <boost/date_time/posix_time/posix_time.hpp> // for to_iso_string, local_time
-
 #include <mutex>
 
 #define SHOW_FPS 1
@@ -175,9 +173,7 @@ public:
       if ((event.getKeyCode() == 's') || (event.getKeyCode() == 'S')) {
         std::lock_guard<std::mutex> lock(cloud_mutex_);
         frame.str("frame-");
-        frame << boost::posix_time::to_iso_string(
-                     boost::posix_time::microsec_clock::local_time())
-              << ".pcd";
+        frame << pcl::getISOTime() << ".pcd";
         writer.writeBinaryCompressed(frame.str(), *cloud_);
         PCL_INFO("Written cloud %s.\n", frame.str().c_str());
       }

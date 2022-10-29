@@ -125,7 +125,7 @@ class SimpleOpenNIViewer
       {
         std::lock_guard<std::mutex> lock (image_mutex_);
 
-        std::string time = boost::posix_time::to_iso_string (boost::posix_time::microsec_clock::local_time ());
+        std::string time = pcl::getISOTime();
         if (image_)
         {
           FPS_CALC ("writer callback");

@@ -39,8 +39,11 @@
 #pragma once
 
 #include <chrono>
+#include <ctime>
+#include <iomanip>
 #include <iostream>
 #include <queue>
+#include <sstream>
 #include <string>
 
 /**
@@ -181,6 +184,19 @@ namespace pcl
 #define MEASURE_FUNCTION_TIME \
   ScopeTime scopeTime(__func__)
 #endif
+
+inline std::string getISOTime ()
+{
+  auto now = std::chrono::system_clock::now();
+  auto toTime = std::chrono::system_clock::to_time_t(now);
+  auto local = std::localtime(&toTime);
+  auto frak = std::chrono::system_clock::from_time_t(toTime);
+
+  auto timestamp = std::chrono::duration_cast<std::chrono::microseconds>(now - frak).count();
+  std::stringstream ss;
+  ss << std::put_time(local, "%Y%m%dT%H%M%S") << "." << timestamp;
+  return ss.str();
+}
 
 inline double 
 getTime ()

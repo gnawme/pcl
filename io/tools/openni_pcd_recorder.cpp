@@ -37,7 +37,6 @@
 #include <pcl/point_types.h>
 #include <pcl/io/openni_grabber.h>
 #include <boost/circular_buffer.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp> // for to_iso_string, local_time
 #include <pcl/io/pcd_io.h>
 #include <pcl/console/print.h>
 #include <pcl/console/parse.h>
@@ -283,8 +282,7 @@ class Consumer
     writeToDisk (const typename PointCloud<PointT>::ConstPtr& cloud)
     {
       std::stringstream ss;
-      std::string time = boost::posix_time::to_iso_string (boost::posix_time::microsec_clock::local_time ());
-      ss << "frame-" << time << ".pcd";
+      ss << "frame-" << pcl::getISOTime() << ".pcd";
       writer_.writeBinaryCompressed (ss.str (), *cloud);
       FPS_CALC ("cloud write.", buf_);
     }
